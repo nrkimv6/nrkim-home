@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+.crtMonitor {
+  background-color: #222;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  width: 800px;
+  margin: 20px auto;
+}
+
+.crtScreen {
+  background-color: #000;
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  padding: 20px;
+  height: 70vh;
+  overflow-y: auto;
+  position: relative;
+  text-align: left;
+}
+
+.crtScreen::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.06),
+    rgba(0, 255, 0, 0.02),
+    rgba(0, 0, 255, 0.06)
+  );
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+@keyframes shutdown {
+  0% { 
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  60% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  80% { 
+    transform: scale(0.9) translateY(20px);
+    opacity: 0.5;
+    filter: brightness(0.5);
+  }
+  100% { 
+    transform: scale(0.8) translateY(40px);
+    opacity: 0;
+    filter: brightness(0);
+  }
+}
+
+.animateCrtShutdown {
+  animation: shutdown 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem;
+  text-align: center;
+}
+
+.overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+@keyframes textShadow {
+  0% {
+    text-shadow: 0.4389924193300864px 0 1px rgba(0,30,255,0.5),
+                -0.4389924193300864px 0 1px rgba(255,0,80,0.3),
+                0 0 3px;
+  }
+  5% {
+    text-shadow: 2.7928974010788217px 0 1px rgba(0,30,255,0.5),
+                -2.7928974010788217px 0 1px rgba(255,0,80,0.3),
+                0 0 3px;
+  }
+  /* ... 나머지 키프레임 ... */
+} 

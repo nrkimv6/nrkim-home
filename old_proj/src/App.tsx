@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { routes } from './routes';
 import './App.css';
-import HomeScreen from './components/HomeScreen'
+import HomeScreen from './components/HomeScreen';
 
 function App() {
   return (

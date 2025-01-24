@@ -1,0 +1,38 @@
++---public
+|   favicon.ico
+|   index.html
+|   logo192.png
+|   logo512.png
+|   manifest.json
++---src
+|   +---components
+|   |   +---aif-c01
+|   |   |   VideoPlayer.tsx
+|   |   AIFNavigation.css
+|   |   AIFNavigation.tsx
+|   |   CRTMonitor.css
+|   |   CRTMonitor.tsx
+|   |   HomeScreen.tsx
+|   |   Navigation.css
+|   |   Navigation.tsx
+|   |   globals.css
+|   +---pages
+|   |   AIFC01.tsx
+|   |   AIFStudy.tsx
+|   +---routes
+|   |   index.tsx
+|   App.css
+|   App.tsx
+|   custom.d.ts
+|   index.css
+|   index.tsx
+|   logo.svg
+.gitignore
+README.md
+index.html
+package-lock.json
+package.json
+tailwind.config.js
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
