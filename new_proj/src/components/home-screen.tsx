@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react"
 import { CRTMonitor } from "./crt-monitor"
 import { SnakeGame } from "./snake-game"
+import { PentrisGame } from "./pentris-game"
 
 export function HomeScreen() {
-  const [text, setText] = useState("")
-  const [showButton, setShowButton] = useState(false)
-  const [showMonitor, setShowMonitor] = useState(true)
-  const [isShuttingDown, setIsShuttingDown] = useState(false)
-  const [showSnakeGame, setShowSnakeGame] = useState(false)
+    const [text, setText] = useState("")
+    const [showButton, setShowButton] = useState(false)
+    const [showMonitor, setShowMonitor] = useState(true)
+    const [isShuttingDown, setIsShuttingDown] = useState(false)
+    const [showSnakeGame, setShowSnakeGame] = useState(false)
+    const [showPentrisGame, setShowPentrisGame] = useState(false)
 
-  const basicText = `
+    const basicText = `
 Trying 127.0.0.1...
 Connected to narang.kim
 Escape character is '^]'.
@@ -24,7 +26,7 @@ Last login: ${new Date().toLocaleString()}
 
 guest@narang:~$`
 
-  const secondText = `
+    const secondText = `
 
 === ABOUT ME ===
 Name: Kim, Narang
@@ -34,7 +36,7 @@ Keywords: Learning, Curious, Growth, Programming, Feeling, Empowerment
 
 guest@narang:~$`
 
-  const thirdText = `
+    const thirdText = `
 
 === SKILLS ===
 Backend:
@@ -48,92 +50,112 @@ Email: risingnrkim@gmail.com
 
 guest@narang:~$ _`
 
-  useEffect(() => {
-    let i = 0
-    const typing = setInterval(() => {
-      setText(basicText.slice(0, i))
-      i++
-      if (i > basicText.length) {
-        clearInterval(typing)
-        setShowButton(true)
-        
-        setTimeout(() => {
-          setShowButton(false)
-          let j = 0
-          const secondTyping = setInterval(() => {
-            setText(basicText + secondText.slice(0, j))
-            j++
-            if (j > secondText.length) {
-              clearInterval(secondTyping)
-              
-              setTimeout(() => {
-                let k = 0
-                const thirdTyping = setInterval(() => {
-                  setText(basicText + secondText + thirdText.slice(0, k))
-                  k++
-                  if (k > thirdText.length) clearInterval(thirdTyping)
-                }, 50)
-              }, 10000)
+    useEffect(() => {
+        let i = 0
+        const typing = setInterval(() => {
+            setText(basicText.slice(0, i))
+            i++
+            if (i > basicText.length) {
+                clearInterval(typing)
+                setShowButton(true)
+
+                setTimeout(() => {
+                    setShowButton(false)
+                    let j = 0
+                    const secondTyping = setInterval(() => {
+                        setText(basicText + secondText.slice(0, j))
+                        j++
+                        if (j > secondText.length) {
+                            clearInterval(secondTyping)
+
+                            setTimeout(() => {
+                                let k = 0
+                                const thirdTyping = setInterval(() => {
+                                    setText(basicText + secondText + thirdText.slice(0, k))
+                                    k++
+                                    if (k > thirdText.length) clearInterval(thirdTyping)
+                                }, 50)
+                            }, 10000)
+                        }
+                    }, 50)
+                }, 66000)
             }
-          }, 50)
-        }, 66000)
-      }
-    }, 50)
+        }, 50)
 
-    return () => clearInterval(typing)
-  }, [])
+        return () => clearInterval(typing)
+    }, [])
 
-  useEffect(() => {
-    const preElement = document.querySelector('pre')
-    if (preElement) {
-      preElement.scrollTop = preElement.scrollHeight
-    }
-  }, [text])
+    useEffect(() => {
+        const preElement = document.querySelector('pre')
+        if (preElement) {
+            preElement.scrollTop = preElement.scrollHeight
+        }
+    }, [text])
 
-  const shutDownMonitor = () => {
-    setText(prev => prev + "\n\nbye!")
-    
-    setTimeout(() => {
-      setIsShuttingDown(true)
-      setShowMonitor(false)
-      setShowSnakeGame(true)
-    }, 1000)
-  }
+    const shutDownMonitor = (gameType: 'snake' | 'pentris') => {
+        setText(prev => prev + "\n\nbye!")
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        shutDownMonitor()
-      }
-      if (e.key === 'Enter' && showButton) {
-        shutDownMonitor()
-      }
+        setTimeout(() => {
+            setIsShuttingDown(true)
+            setShowMonitor(false)
+            if (gameType === 'snake') {
+                setShowSnakeGame(true)
+                setShowPentrisGame(false)
+            } else {
+                setShowPentrisGame(true)
+                setShowSnakeGame(false)
+            }
+        }, 300)
     }
 
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [showButton])
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (showSnakeGame || showPentrisGame) {
+                return
+            }
 
-  return (
-    <>
-      {showMonitor && (
-        <div className="home-screen">
-          <CRTMonitor isShuttingDown={isShuttingDown}>
-            <pre className="overflow-auto max-h-[70vh]">{text}</pre>
-            {showButton && (
-              <div className="mt-4">
-                <button
-                  onClick={shutDownMonitor}
-                  className="continue-button bg-transparent text-white border border-white/20 px-4 py-2 font-mono hover:bg-white/10 transition-colors"
-                >
-                  [CONTINUE] Press Enter...
-                </button>
-              </div>
+            if (e.key === 'Escape') {
+                shutDownMonitor('pentris')
+                return
+            }
+
+            if (showButton) {
+                switch (e.key) {
+                    case 'Enter':
+                        shutDownMonitor('snake')
+                        break
+                    case ' ': // Space key
+                        shutDownMonitor('pentris')
+                        break
+                }
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyPress)
+        return () => window.removeEventListener('keydown', handleKeyPress)
+    }, [showButton, showSnakeGame, showPentrisGame])
+
+    return (
+        <>
+            {showMonitor && (
+                <div className="home-screen">
+                    <CRTMonitor isShuttingDown={isShuttingDown}>
+                        <pre className="overflow-auto max-h-[70vh]">{text}</pre>
+                        {showButton && (
+                            <div className="mt-4">
+                                <button
+                                    onClick={() => shutDownMonitor('snake')}
+                                    className="continue-button bg-transparent text-white border border-white/20 px-4 py-2 font-mono hover:bg-white/10 transition-colors"
+                                >
+                                    [CONTINUE] Press Enter...
+                                </button>
+                            </div>
+                        )}
+                    </CRTMonitor>
+                </div>
             )}
-          </CRTMonitor>
-        </div>
-      )}
-      {showSnakeGame && <SnakeGame />}
-    </>
-  )
+            {showSnakeGame && <SnakeGame />}
+            {showPentrisGame && <PentrisGame />}
+        </>
+    )
 } 
