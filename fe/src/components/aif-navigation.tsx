@@ -14,7 +14,7 @@ const aifRoutes = [
   {
     path: "/aif-c01/study",
     title: "학습하기",
-    visible: true
+    visible: false
   }
 ]
 
