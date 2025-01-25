@@ -51,39 +51,49 @@ Email: risingnrkim@gmail.com
 guest@narang:~$ _`
 
     useEffect(() => {
-        let i = 0
-        const typing = setInterval(() => {
-            setText(basicText.slice(0, i))
-            i++
-            if (i > basicText.length) {
-                clearInterval(typing)
-                setShowButton(true)
+        let typing: NodeJS.Timeout;
+        let secondTyping: NodeJS.Timeout;
+        let thirdTyping: NodeJS.Timeout;
 
-                setTimeout(() => {
-                    setShowButton(false)
-                    let j = 0
-                    const secondTyping = setInterval(() => {
-                        setText(basicText + secondText.slice(0, j))
-                        j++
-                        if (j > secondText.length) {
-                            clearInterval(secondTyping)
+        if (!showSnakeGame && !showPentrisGame) {  // 게임이 시작되면 타이핑 중단
+            let i = 0
+            typing = setInterval(() => {
+                setText(basicText.slice(0, i))
+                i++
+                if (i > basicText.length) {
+                    clearInterval(typing)
+                    setShowButton(true)
 
-                            setTimeout(() => {
-                                let k = 0
-                                const thirdTyping = setInterval(() => {
-                                    setText(basicText + secondText + thirdText.slice(0, k))
-                                    k++
-                                    if (k > thirdText.length) clearInterval(thirdTyping)
-                                }, 50)
-                            }, 10000)
-                        }
-                    }, 50)
-                }, 66000)
-            }
-        }, 50)
+                    setTimeout(() => {
+                        setShowButton(false)
+                        let j = 0
+                        secondTyping = setInterval(() => {
+                            setText(basicText + secondText.slice(0, j))
+                            j++
+                            if (j > secondText.length) {
+                                clearInterval(secondTyping)
 
-        return () => clearInterval(typing)
-    }, [])
+                                setTimeout(() => {
+                                    let k = 0
+                                    thirdTyping = setInterval(() => {
+                                        setText(basicText + secondText + thirdText.slice(0, k))
+                                        k++
+                                        if (k > thirdText.length) clearInterval(thirdTyping)
+                                    }, 50)
+                                }, 10000)
+                            }
+                        }, 50)
+                    }, 66000)
+                }
+            }, 50)
+        }
+
+        return () => {
+            clearInterval(typing)
+            clearInterval(secondTyping)
+            clearInterval(thirdTyping)
+        }
+    }, [showSnakeGame, showPentrisGame])  // 의존성 배열에 게임 상태 추가
 
     useEffect(() => {
         const preElement = document.querySelector('pre')
@@ -93,7 +103,9 @@ guest@narang:~$ _`
     }, [text])
 
     const shutDownMonitor = (gameType: 'snake' | 'pentris') => {
+        // 모든 타이머 즉시 정리
         setText(prev => prev + "\n\nbye!")
+        setShowButton(false)  // 버튼 즉시 숨김
 
         setTimeout(() => {
             setIsShuttingDown(true)
