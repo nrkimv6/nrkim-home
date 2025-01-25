@@ -1,10 +1,20 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, Save } from 'lucide-react';
+
+interface SavedData {
+  id: string;
+  timeBuffer: string;
+  subtitleInput: string;
+  summaryInput: string;
+  fileNameBase: string;
+  timestamp: number;
+}
 
 export default function ParserApp() {
     const [timeBuffer, setTimeBuffer] = useState('00:00:00.000');
@@ -12,6 +22,14 @@ export default function ParserApp() {
     const [summaryInput, setSummaryInput] = useState('');
     const [fileNameBase, setFileNameBase] = useState('');
     const [error, setError] = useState('');
+    const [savedList, setSavedList] = useState<SavedData[]>([]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('parserData');
+        if (saved) {
+            setSavedList(JSON.parse(saved));
+        }
+    }, []);
 
     const validateTimeFormat = (time: string) => {
         const regex = /^([0-1][0-9]|14|15):([0-5][0-9]):([0-5][0-9])\.(\d{3})$/;
@@ -27,6 +45,42 @@ export default function ParserApp() {
         const value = e.target.value;
         setTimeBuffer(value);
         validateTimeFormat(value);
+    };
+
+    const handleSaveToStorage = () => {
+        const newData: SavedData = {
+            id: Date.now().toString(),
+            timeBuffer,
+            subtitleInput,
+            summaryInput,
+            fileNameBase,
+            timestamp: Date.now()
+        };
+        
+        const updatedList = [...savedList, newData];
+        localStorage.setItem('parserData', JSON.stringify(updatedList));
+        setSavedList(updatedList);
+    };
+
+    const handleLoad = (data: SavedData) => {
+        setTimeBuffer(data.timeBuffer);
+        setSubtitleInput(data.subtitleInput);
+        setSummaryInput(data.summaryInput);
+        setFileNameBase(data.fileNameBase);
+    };
+
+    const handleDelete = (id: string) => {
+        const updatedList = savedList.filter(item => item.id !== id);
+        localStorage.setItem('parserData', JSON.stringify(updatedList));
+        setSavedList(updatedList);
+    };
+
+    const handleReset = () => {
+        setTimeBuffer('00:00:00.000');
+        setSubtitleInput('');
+        setSummaryInput('');
+        setFileNameBase('');
+        setError('');
     };
 
     const parseTime = (timeStr: string) => {
@@ -71,9 +125,9 @@ export default function ParserApp() {
             });
             
             return {
-                group_id: groupIndex + 1,
+                id: groupIndex + 1,
                 groupTimestamp: groupTimestamp.replace(/[^\d:]/g, ''),
-                sentences: sentenceDetails
+                items: sentenceDetails
             };
         });
     };
@@ -155,7 +209,6 @@ export default function ParserApp() {
             });
     };
 
-
     const handleGenerate = () => {
         if (!validateTimeFormat(timeBuffer)) return;
 
@@ -189,6 +242,33 @@ export default function ParserApp() {
         <div className="p-4 max-w-4xl mx-auto">
             <Card>
                 <CardContent className="p-6 space-y-4">
+                    {/* 저장된 데이터 목록 */}
+                    {savedList.length > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Saved Data</h3>
+                            <div className="space-y-2">
+                                {savedList.map((data) => (
+                                    <div key={data.id} className="flex items-center justify-between p-2 border rounded">
+                                        <button
+                                            onClick={() => handleLoad(data)}
+                                            className="flex-1 text-left hover:bg-gray-100 p-2 rounded"
+                                        >
+                                            {data.fileNameBase || 'Unnamed'} - {new Date(data.timestamp).toLocaleString()}
+                                        </button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleDelete(data.id)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 기존 입력 필드들 */}
                     <div className="space-y-2">
                         <label className="block text-sm font-medium">Time Buffer (HH:MM:SS.mmm)</label>
                         <Input
@@ -233,9 +313,18 @@ export default function ParserApp() {
                         />
                     </div>
 
-                    <Button onClick={handleGenerate} className="w-full">
-                        Generate JSON Files
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button onClick={handleGenerate} className="flex-1">
+                            Generate JSON Files
+                        </Button>
+                        <Button onClick={handleSaveToStorage} variant="outline">
+                            <Save className="h-4 w-4 mr-2" />
+                            Save
+                        </Button>
+                        <Button onClick={handleReset} variant="outline">
+                            Reset
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
