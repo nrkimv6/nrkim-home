@@ -1,6 +1,6 @@
 "use client"
 
-import { VideoPlayer } from "@/components/aif-c01/video-player"
+import { PlayComponent } from "@/components/aif-c01/play-component"
 import { AIFNavigation } from "@/components/aif-navigation"
 
 export default function AIFC01Page() {
@@ -8,7 +8,7 @@ export default function AIFC01Page() {
     <div className="min-h-screen bg-background">
       <AIFNavigation />
       <main className="p-8">
-        <VideoPlayer />
+        <PlayComponent />
       </main>
     </div>
   )
