@@ -147,6 +147,7 @@ export function PlayComponent() {
                   onReady={() => setPlayerReady(true)}
                   onStateChange={handlePlayerStateChange}
                   onTimeUpdate={setCurrentTimeMs}
+                  onPlayerReady={(player) => playerRef.current = player}
                 />
               </div>
             </TabsContent>
@@ -230,12 +231,17 @@ export function PlayComponent() {
                         data-subtitle-id={subtitle.id}
                         key={subtitle.id}
                         className={cn(
-                          "flex gap-4 p-2 rounded transition-all duration-300 hover:bg-muted/50",
+                          "flex gap-4 p-2 rounded transition-all duration-300 hover:bg-muted/50 cursor-pointer",
                           currentTimeMs >= stringToTime(subtitle.startTime) && 
                           currentTimeMs < stringToTime(subtitle.endTime)
                             ? "bg-primary/10 border-l-2 border-primary font-medium scale-[1.02]" 
                             : ""
                         )}
+                        onClick={() => {
+                          const timeMs = stringToTime(subtitle.startTime)
+                          setCurrentTimeMs(timeMs)
+                          playerRef.current?.seekTo(timeMs / 1000, true)
+                        }}
                       >
                         <span className="text-muted-foreground min-w-[2rem]">
                           {subtitle.id}

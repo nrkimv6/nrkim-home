@@ -5,9 +5,10 @@ interface VideoPlayerProps {
   onReady: () => void;
   onStateChange: (event: YT.OnStateChangeEvent) => void;
   onTimeUpdate: (currentTime: number) => void;
+  onPlayerReady: (player: YT.Player) => void;  // 추가
 }
 
-export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate, onPlayerReady }: VideoPlayerProps) {
   const playerRef = useRef<YT.Player | null>(null)
   const timeUpdateInterval = useRef<NodeJS.Timeout | null>(null)
 
@@ -42,7 +43,10 @@ export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate }: V
       playerRef.current = new YT.Player('youtube-player', {
         videoId,
         events: {
-          onReady,
+          onReady: () => {
+            onReady();
+            onPlayerReady(playerRef.current!);  // 추가
+          },
           onStateChange: handleStateChange,
         },
         playerVars: {
