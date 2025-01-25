@@ -1,6 +1,7 @@
 "use client"
 
 import { PlayComponent } from "@/components/aif-c01/play-component"
+import { SyncProvider } from "@/components/aif-c01/sync-context"
 import { AIFNavigation } from "@/components/aif-navigation"
 
 export default function AIFC01Page() {
@@ -8,7 +9,9 @@ export default function AIFC01Page() {
     <div className="min-h-screen bg-background">
       <AIFNavigation />
       <main className="p-8">
-        <PlayComponent />
+        <SyncProvider>
+          <PlayComponent />
+        </SyncProvider>
       </main>
     </div>
   )

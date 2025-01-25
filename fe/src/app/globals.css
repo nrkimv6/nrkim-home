@@ -102,3 +102,7 @@
   }
   /* 나머지 키프레임은 유지 */
 }
+
+.highlight {
+  @apply ring-2 ring-primary ring-offset-2 transition-all duration-300;
+}

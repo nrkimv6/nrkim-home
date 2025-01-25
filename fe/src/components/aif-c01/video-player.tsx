@@ -39,7 +39,7 @@ export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate, onP
   useEffect(() => {
     const initPlayer = () => {
       if (!document.getElementById('youtube-player')) return;
-      
+
       playerRef.current = new YT.Player('youtube-player', {
         videoId,
         events: {
@@ -77,4 +77,9 @@ export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate, onP
   }, [videoId]);
 
   return <div id="youtube-player" className="w-full h-full" />;
+} declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void;
+    YT: typeof YT;
+  }
 }

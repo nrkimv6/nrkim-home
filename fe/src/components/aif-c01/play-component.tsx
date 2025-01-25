@@ -1,13 +1,13 @@
 "use client"
 
 import { useRef, useState, useEffect, SetStateAction } from "react"
-import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { cn } from "@/lib/utils"
 import { VideoPlayer } from "./video-player"
 import { SubtitleList } from "./subtitle-list"
 import { SummaryList } from "./summary-list"
+import { useSync } from "./sync-context"
+import { stringToTime, SubtitleGroup, SummaryGroup, Video, ScrollTrigger } from "./types"
 
 
 export function PlayComponent() {
@@ -22,6 +22,10 @@ export function PlayComponent() {
   const [subtitleGroups, setSubtitleGroups] = useState<SubtitleGroup[]>([])
   const [summaryGroups, setSummaryGroups] = useState<SummaryGroup[]>([])
   const [autoScroll, setAutoScroll] = useState(true)
+  const [isManualScrolling, setIsManualScrolling] = useState(false)
+
+  const { setActiveItem, setPendingScroll } = useSync();
+  const [activeBottomTab, setActiveBottomTab] = useState("summary");
 
   const videos: Video[] = [
     {
@@ -34,37 +38,23 @@ export function PlayComponent() {
     },
   ]
 
-  useEffect(() => {
-    if (!autoScroll) return
+  // useEffect(() => {
+  //   if (!autoScroll) return
 
-    const currentSubtitle = subtitleGroups
-      .flatMap(group => group.items)
-      .find(item =>
-        currentTimeMs >= stringToTime(item.startTime) &&
-        currentTimeMs < stringToTime(item.endTime)
-      )
+  //   const currentSubtitle = subtitleGroups
+  //     .flatMap(group => group.items)
+  //     .find(item =>
+  //       currentTimeMs >= stringToTime(item.startTime) &&
+  //       currentTimeMs < stringToTime(item.endTime)
+  //     )
 
-    if (currentSubtitle) {
-      document.querySelector(`[data-subtitle-id="${currentSubtitle.id}"]`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, [currentTimeMs, subtitleGroups, autoScroll])
+  //   if (currentSubtitle) {
+  //     document.querySelector(`[data-subtitle-id="${currentSubtitle.id}"]`)
+  //       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  //   }
+  // }, [currentTimeMs, subtitleGroups, autoScroll])
 
   const totalDurationMs = videos.reduce((acc, video) => acc + video.durationMs, 0)
-
-  const stringToTime = (timeStr: string): number => {
-    const [hours, minutes, seconds] = timeStr.split(":").map(Number)
-    return (hours * 3600 + minutes * 60 + seconds) * 1000
-  }
-
-  const getImageFilename = (timeMs: number) => {
-    const totalSeconds = Math.floor(timeMs / 1000)
-    const hours = Math.floor(totalSeconds / 3600)
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-    const seconds = totalSeconds % 60
-
-    return `slide_${String(totalSeconds).padStart(4, "0")}_${String(hours).padStart(2, "0")}-${String(minutes).padStart(2, "0")}-${String(seconds).padStart(2, "0")}.png`
-  }
 
   useEffect(() => {
     const loadSubtitles = async () => {
@@ -87,8 +77,12 @@ export function PlayComponent() {
       }
     };
 
-    loadSubtitles();
-    loadSummaries();
+    if(subtitleGroups.length === 0){
+      loadSubtitles();
+    }
+    if(summaryGroups.length === 0){
+      loadSummaries();
+    }
   }, []);
 
   const handlePlayerStateChange = (event: YT.OnStateChangeEvent) => {
@@ -124,19 +118,115 @@ export function PlayComponent() {
     setCurrentTimeMs(newTimeMs)
     playerRef.current?.seekTo(newTimeMs / 1000, true)
   }
-  const onTimeSelectforSubtitle = (time: number) => {
-    setCurrentTimeMs(time)
-    playerRef.current?.seekTo(time / 1000, true)
+
+  const getSubTitleItem = (sourceIndex:number, sequence:number)=>{
+    for (const group of subtitleGroups) {
+      if (group.sourceIndex === sourceIndex) {
+        const item = group.items.find(item => item.sequence === sequence);
+        if (item) return item;
+      }
+    }
+    return undefined;
   }
 
-  const onTimeSelectforSummary = (time: number, sourceIndex: number, shortcutId: number) => {
-    onTimeSelectforSubtitle(time);
-    
-    setActiveTab("subtitles");
-    
-    const subtitleElement = document.querySelector(`[data-subtitle-id="${shortcutId}"]`);
-    subtitleElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const getSummaryTime = (sourceIndex: number, sequence: number) => {
+    const subtitleItem = getSubTitleItem(sourceIndex, sequence);
+    if( subtitleItem){
+      return stringToTime(subtitleItem.startTime);
+    }
+    return null;
   }
+
+  const onTimeSelect = (time: number | null, type: 'subtitle' | 'summary', options?: {
+    sourceIndex?: number;
+    sequence?: number;
+  }) => {
+    if (type === 'summary' && options?.sequence) {
+      setIsManualScrolling(true);
+      const subTitle = getSubTitleItem(options.sourceIndex || 0, options.sequence);
+
+      if(subTitle){
+        console.debug(`subTitle: ${subTitle.id}`)
+        const summaryTime = stringToTime(subTitle?.startTime || '00:00:00.000');
+        playerRef.current?.seekTo(summaryTime / 1000, true);
+        setCurrentTimeMs(summaryTime);
+        setPendingScroll({
+          sourceIndex: options.sourceIndex,
+          sequence: options.sequence,
+          trigger: ScrollTrigger.SHORTCUT
+        });
+      }
+      else{
+        console.debug(`subTitle not found for ${options.sourceIndex} ${options.sequence}`)
+      }
+
+      setActiveBottomTab('subtitle');
+      setActiveItem({
+        type,
+        id: subTitle?.id || null,
+        time: time,
+        trigger: ScrollTrigger.SHORTCUT
+      });
+
+      setTimeout(() => {
+        setIsManualScrolling(false);
+      }, 1000);
+    }
+    else {
+      if (time) {
+        setCurrentTimeMs(time);
+        playerRef.current?.seekTo(time / 1000, true);
+        setActiveItem({
+          type,
+          id: null,
+          time: time,
+          trigger: ScrollTrigger.SHORTCUT
+        });
+      }
+    }
+  };
+
+  // 탭 변경 시 현재 시간에 해당하는 항목으로 스크롤
+  useEffect(() => {
+    if (activeBottomTab === 'subtitle') {
+      const subTitle = subtitleGroups
+        .flatMap(group => group.items)
+        .find(item =>
+          currentTimeMs >= stringToTime(item.startTime) &&
+          currentTimeMs < stringToTime(item.endTime)
+        );
+
+      if (subTitle) {
+        const group = subtitleGroups.find(g => 
+          g.items.some(item => item.id === subTitle.id)
+        );
+        if (group) {
+          setPendingScroll({
+            sourceIndex: group.sourceIndex,
+            sequence: subTitle.sequence
+          });
+          setActiveItem({
+            type: 'subtitle',
+            id: subTitle.id,
+            time: currentTimeMs
+          });
+        }
+      }
+    } else if (activeBottomTab === 'summary') {
+      const summary = summaryGroups.find(group =>
+        currentTimeMs >= stringToTime(group.startTime) &&
+        currentTimeMs < stringToTime(group.endTime)
+      );
+
+      if (summary) {
+        setActiveItem({
+          type: 'summary',
+          id: summary.id,
+          time: currentTimeMs
+        });
+      }
+    }
+  }, [activeBottomTab]);
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -220,44 +310,37 @@ export function PlayComponent() {
           </div>
         </Tabs>
 
-        <Tabs defaultValue="summary" className="mt-6">
+        <Tabs value={activeBottomTab} onValueChange={setActiveBottomTab}>
           <TabsList>
             <TabsTrigger value="summary">요약</TabsTrigger>
-            <TabsTrigger value="subtitles">자막</TabsTrigger>
-            <TabsTrigger value="timestamps">타임스탬프</TabsTrigger>
+            <TabsTrigger value="subtitle">자막</TabsTrigger>
+            <TabsTrigger value="timestamp">타임스탬프</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="summary">
-            <SummaryList
-              summaryGroups={summaryGroups}
-              currentTimeMs={currentTimeMs}
-              stringToTime={stringToTime}
-              onTimeSelectforSummary={onTimeSelectforSummary}
-              autoScroll={autoScroll}
-              setAutoScroll={setAutoScroll}
-            />
-          </TabsContent>
-          <TabsContent value="subtitles">
-            <SubtitleList
-              subtitleGroups={subtitleGroups}
-              currentTimeMs={currentTimeMs}
-              stringToTime={stringToTime}
-              onTimeSelect={(time: number) => {
-                onTimeSelectforSubtitle(time);
-              }}
-              autoScroll={autoScroll}
-              setAutoScroll={setAutoScroll}
-            /></TabsContent>
-          <TabsContent value="timestamps">...</TabsContent>
+          <Card>
+            <Tabs value={activeBottomTab} onValueChange={setActiveBottomTab}>
+              <TabsContent value="summary">
+                <SummaryList
+                  summaryGroups={summaryGroups}
+                  currentTimeMs={currentTimeMs}
+                  onTimeSelect={onTimeSelect}
+                  autoScroll={autoScroll}
+                  setAutoScroll={setAutoScroll}
+                />
+              </TabsContent>
+              <TabsContent value="subtitle">
+                <SubtitleList
+                  subtitleGroups={subtitleGroups}
+                  currentTimeMs={currentTimeMs}
+                  onTimeSelect={onTimeSelect}
+                  autoScroll={autoScroll}
+                  setAutoScroll={setAutoScroll}
+                  isManualScrolling={isManualScrolling}
+                />
+              </TabsContent>
+            </Tabs>
+          </Card>
         </Tabs>
       </CardContent>
     </Card>
-  )
-}
-
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady: () => void;
-    YT: typeof YT;
-  }
+  );
 }
