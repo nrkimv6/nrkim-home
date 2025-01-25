@@ -52,6 +52,20 @@ export function PlayComponent() {
     },
   ]
 
+  useEffect(() => {
+    const currentSubtitle = subtitleGroups
+      .flatMap(group => group.items)
+      .find(item => 
+        currentTimeMs >= stringToTime(item.startTime) && 
+        currentTimeMs < stringToTime(item.endTime)
+      )
+
+    if (currentSubtitle) {
+      document.querySelector(`[data-subtitle-id="${currentSubtitle.id}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [currentTimeMs, subtitleGroups])
+
   const totalDurationMs = videos.reduce((acc, video) => acc + video.durationMs, 0)
 
   const stringToTime = (timeStr: string): number => {
@@ -170,6 +184,7 @@ export function PlayComponent() {
               <div 
                 className="h-4 bg-secondary rounded-md cursor-pointer"
                 onClick={handleProgressClick}
+                style={{visibility:"hidden"}}
               >
                 <div 
                   className="h-full bg-primary rounded-md"
@@ -199,11 +214,11 @@ export function PlayComponent() {
                 <div 
                   key={group.id}
                   className={cn(
-                    "space-y-2 rounded-md p-4 transition-colors",
+                    "space-y-2 rounded-md p-4 transition-all duration-300",
                     group.items.some(item => 
                       currentTimeMs >= stringToTime(item.startTime) && 
                       currentTimeMs < stringToTime(item.endTime)
-                    ) ? "bg-secondary/30" : "bg-muted"
+                    ) ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
                   )}
                 >
                   <div className="text-sm font-medium text-muted-foreground">
@@ -212,12 +227,13 @@ export function PlayComponent() {
                   <div className="space-y-1">
                     {group.items.map((subtitle) => (
                       <div
+                        data-subtitle-id={subtitle.id}
                         key={subtitle.id}
                         className={cn(
-                          "flex gap-4 p-2 rounded transition-colors",
+                          "flex gap-4 p-2 rounded transition-all duration-300 hover:bg-muted/50",
                           currentTimeMs >= stringToTime(subtitle.startTime) && 
                           currentTimeMs < stringToTime(subtitle.endTime)
-                            ? "bg-primary/20 font-medium" 
+                            ? "bg-primary/10 border-l-2 border-primary font-medium scale-[1.02]" 
                             : ""
                         )}
                       >
@@ -246,4 +262,4 @@ declare global {
     onYouTubeIframeAPIReady: () => void;
     YT: typeof YT;
   }
-} 
+}
