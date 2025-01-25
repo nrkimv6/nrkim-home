@@ -42,29 +42,38 @@ export default function ParserApp() {
         const ms = Math.floor((seconds % 1) * 1000);
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
     };
-
     const parseSubtitles = (input: string) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(input, 'text/html');
-        const sentences = Array.from(doc.querySelectorAll('.eachChunk'));
+        const groupedSentences = Array.from(doc.querySelectorAll('.grouped-sentence'));
         const buffer = parseTime(timeBuffer);
-
-        return sentences.map((sentence, index) => {
-            const sequence = sentence.querySelector('.sentence-number')?.textContent;
-            const timestamp = sentence.querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content');
-            const text = sentence.textContent?.replace(/^\d+/, '').trim();
-
-            const startTime = parseTime(timestamp || '00:00:00') + buffer;
-            const endTime = index < sentences.length - 1
-                ? parseTime(sentences[index + 1].querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content') || '00:00:00') + buffer
-                : startTime + 5;
-
+        
+        return groupedSentences.map((group, groupIndex) => {
+            const sentences = Array.from(group.querySelectorAll('.eachChunk'));
+            const groupTimestamp = group.querySelector('.timestamp')?.textContent?.trim() || '00:00:00';
+            
+            const sentenceDetails = sentences.map((sentence, index) => {
+                const sequence = sentence.querySelector('.sentence-number')?.textContent;
+                const timestamp = sentence.querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content');
+                const text = sentence.textContent?.replace(/^\d+/, '').trim();
+                const startTime = parseTime(timestamp || groupTimestamp) + buffer;
+                const endTime = index < sentences.length - 1
+                    ? parseTime(sentences[index + 1].querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content') || '00:00:00') + buffer
+                    : startTime + 5;
+                    
+                return {
+                    id: index + 1,
+                    sequence: parseInt(sequence || '0') || index + 1,
+                    startTime: formatTime(startTime),
+                    endTime: formatTime(endTime),
+                    text
+                };
+            });
+            
             return {
-                id: index + 1,
-                sequence: parseInt(sequence || '0') || index + 1,
-                startTime: formatTime(startTime),
-                endTime: formatTime(endTime),
-                text
+                group_id: groupIndex + 1,
+                groupTimestamp: groupTimestamp.replace(/[^\d:]/g, ''),
+                sentences: sentenceDetails
             };
         });
     };
