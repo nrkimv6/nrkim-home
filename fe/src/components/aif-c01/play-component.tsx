@@ -1,34 +1,14 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, SetStateAction } from "react"
+import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { VideoPlayer } from "./video-player"
+import { SubtitleList } from "./subtitle-list"
+import { SummaryList } from "./summary-list"
 
-interface Video {
-  id: number
-  videoId: string
-  startTime: string
-  endTime: string
-  durationMs: number
-  audio: string | null
-}
-
-interface SubtitleItem {
-  id: number;
-  sequence: number;
-  startTime: string;
-  endTime: string;
-  text: string;
-}
-
-interface SubtitleGroup {
-  id: number;
-  groupTimestamp: string;
-  items: SubtitleItem[];
-  sourceIndex: number;
-}
 
 export function PlayComponent() {
   const playerRef = useRef<YT.Player | null>(null)
@@ -40,12 +20,14 @@ export function PlayComponent() {
   const [currentImage, setCurrentImage] = useState("")
   const [isPlaying, setIsPlaying] = useState(false)
   const [subtitleGroups, setSubtitleGroups] = useState<SubtitleGroup[]>([])
+  const [summaryGroups, setSummaryGroups] = useState<SummaryGroup[]>([])
+  const [autoScroll, setAutoScroll] = useState(true)
 
   const videos: Video[] = [
-    { 
-      id: 1, 
+    {
+      id: 1,
       videoId: "WZeZZ8_W-M4",
-      startTime: "00:00:00.000", 
+      startTime: "00:00:00.000",
       endTime: "03:58:19.322",
       durationMs: 14289321,
       audio: null
@@ -53,10 +35,12 @@ export function PlayComponent() {
   ]
 
   useEffect(() => {
+    if (!autoScroll) return
+
     const currentSubtitle = subtitleGroups
       .flatMap(group => group.items)
-      .find(item => 
-        currentTimeMs >= stringToTime(item.startTime) && 
+      .find(item =>
+        currentTimeMs >= stringToTime(item.startTime) &&
         currentTimeMs < stringToTime(item.endTime)
       )
 
@@ -64,7 +48,7 @@ export function PlayComponent() {
       document.querySelector(`[data-subtitle-id="${currentSubtitle.id}"]`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-  }, [currentTimeMs, subtitleGroups])
+  }, [currentTimeMs, subtitleGroups, autoScroll])
 
   const totalDurationMs = videos.reduce((acc, video) => acc + video.durationMs, 0)
 
@@ -78,7 +62,7 @@ export function PlayComponent() {
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const seconds = totalSeconds % 60
-    
+
     return `slide_${String(totalSeconds).padStart(4, "0")}_${String(hours).padStart(2, "0")}-${String(minutes).padStart(2, "0")}-${String(seconds).padStart(2, "0")}.png`
   }
 
@@ -92,8 +76,19 @@ export function PlayComponent() {
         console.error('자막을 불러오는데 실패했습니다:', error);
       }
     };
-    
+
+    const loadSummaries = async () => {
+      try {
+        const response = await fetch('/data/summaries.json');
+        const data = await response.json();
+        setSummaryGroups(data);
+      } catch (error) {
+        console.error('요약을 불러오는데 실패했습니다:', error);
+      }
+    };
+
     loadSubtitles();
+    loadSummaries();
   }, []);
 
   const handlePlayerStateChange = (event: YT.OnStateChangeEvent) => {
@@ -125,9 +120,22 @@ export function PlayComponent() {
     const rect = e.currentTarget.getBoundingClientRect()
     const percent = (e.clientX - rect.left) / rect.width
     const newTimeMs = percent * totalDurationMs
-    
+
     setCurrentTimeMs(newTimeMs)
     playerRef.current?.seekTo(newTimeMs / 1000, true)
+  }
+  const onTimeSelectforSubtitle = (time: number) => {
+    setCurrentTimeMs(time)
+    playerRef.current?.seekTo(time / 1000, true)
+  }
+
+  const onTimeSelectforSummary = (time: number, sourceIndex: number, shortcutId: number) => {
+    onTimeSelectforSubtitle(time);
+    
+    setActiveTab("subtitles");
+    
+    const subtitleElement = document.querySelector(`[data-subtitle-id="${shortcutId}"]`);
+    subtitleElement?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   return (
@@ -142,7 +150,7 @@ export function PlayComponent() {
           <div className="space-y-4">
             <TabsContent value="video">
               <div className="aspect-video bg-muted">
-                <VideoPlayer 
+                <VideoPlayer
                   videoId={videos[currentVideoIndex].videoId}
                   onReady={() => setPlayerReady(true)}
                   onStateChange={handlePlayerStateChange}
@@ -162,16 +170,16 @@ export function PlayComponent() {
                   />
                 )}
                 {videos[currentVideoIndex].audio && (
-                <audio
-                  ref={audioRef}
-                  src={videos[currentVideoIndex].audio}
-                  onTimeUpdate={(e) => {
-                    const target = e.target as HTMLAudioElement
-                    setCurrentTimeMs(target.currentTime * 1000)
-                  }}
-                  onPlay={() => setIsPlaying(true)} 
-                  onPause={() => setIsPlaying(false)}
-                />)}
+                  <audio
+                    ref={audioRef}
+                    src={videos[currentVideoIndex].audio}
+                    onTimeUpdate={(e) => {
+                      const target = e.target as HTMLAudioElement
+                      setCurrentTimeMs(target.currentTime * 1000)
+                    }}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                  />)}
                 <button
                   className="absolute bottom-4 left-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                   onClick={() => setIsPlaying(!isPlaying)}
@@ -182,12 +190,12 @@ export function PlayComponent() {
             </TabsContent>
 
             <div className="relative mb-12">
-              <div 
+              <div
                 className="h-4 bg-secondary rounded-md cursor-pointer"
                 onClick={handleProgressClick}
-                style={{visibility:"hidden"}}
+                style={{ visibility: "hidden" }}
               >
-                <div 
+                <div
                   className="h-full bg-primary rounded-md"
                   style={{ width: `${(currentTimeMs / totalDurationMs) * 100}%` }}
                 />
@@ -209,60 +217,44 @@ export function PlayComponent() {
                 })}
               </div>
             </div>
-
-            <div className="mt-6 space-y-4 max-h-96 overflow-y-auto">
-              {subtitleGroups.map((group) => (
-                <div 
-                  key={group.id}
-                  className={cn(
-                    "space-y-2 rounded-md p-4 transition-all duration-300",
-                    group.items.some(item => 
-                      currentTimeMs >= stringToTime(item.startTime) && 
-                      currentTimeMs < stringToTime(item.endTime)
-                    ) ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
-                  )}
-                >
-                  <div className="text-sm font-medium text-muted-foreground">
-                    {group.groupTimestamp}
-                  </div>
-                  <div className="space-y-1">
-                    {group.items.map((subtitle) => (
-                      <div
-                        data-subtitle-id={subtitle.id}
-                        key={subtitle.id}
-                        className={cn(
-                          "flex gap-4 p-2 rounded transition-all duration-300 hover:bg-muted/50 cursor-pointer",
-                          currentTimeMs >= stringToTime(subtitle.startTime) && 
-                          currentTimeMs < stringToTime(subtitle.endTime)
-                            ? "bg-primary/10 border-l-2 border-primary font-medium scale-[1.02]" 
-                            : ""
-                        )}
-                        onClick={() => {
-                          const timeMs = stringToTime(subtitle.startTime)
-                          setCurrentTimeMs(timeMs)
-                          playerRef.current?.seekTo(timeMs / 1000, true)
-                        }}
-                      >
-                        <span className="text-muted-foreground min-w-[2rem]">
-                          {subtitle.id}
-                        </span>
-                        <span className="text-foreground">
-                          {subtitle.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
+        </Tabs>
+
+        <Tabs defaultValue="summary" className="mt-6">
+          <TabsList>
+            <TabsTrigger value="summary">요약</TabsTrigger>
+            <TabsTrigger value="subtitles">자막</TabsTrigger>
+            <TabsTrigger value="timestamps">타임스탬프</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="summary">
+            <SummaryList
+              summaryGroups={summaryGroups}
+              currentTimeMs={currentTimeMs}
+              stringToTime={stringToTime}
+              onTimeSelectforSummary={onTimeSelectforSummary}
+              autoScroll={autoScroll}
+              setAutoScroll={setAutoScroll}
+            />
+          </TabsContent>
+          <TabsContent value="subtitles">
+            <SubtitleList
+              subtitleGroups={subtitleGroups}
+              currentTimeMs={currentTimeMs}
+              stringToTime={stringToTime}
+              onTimeSelect={(time: number) => {
+                onTimeSelectforSubtitle(time);
+              }}
+              autoScroll={autoScroll}
+              setAutoScroll={setAutoScroll}
+            /></TabsContent>
+          <TabsContent value="timestamps">...</TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   )
 }
 
-// YouTube IFrame API 타입 선언
 declare global {
   interface Window {
     onYouTubeIframeAPIReady: () => void;
