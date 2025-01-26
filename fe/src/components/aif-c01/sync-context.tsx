@@ -9,7 +9,7 @@ export interface TimeState {
 
 export interface SyncContextType {
     activeItem: {
-        type: 'subtitle' | 'summary' | null;
+        type: 'subtitle' | 'summary' | 'timestamp' |null;
         id: number | null;
         time: number | null;
         trigger?: ScrollTrigger;
@@ -100,7 +100,7 @@ export function useSync() {
     return context;
 }
 
-export function useItemsRefSync(type: 'subtitle' | 'summary' | 'all') {
+export function useItemsRefSync(type: 'subtitle' | 'summary' | 'timestamp'| 'all') {
     const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
     const setItemRef = (key: string, element: HTMLDivElement | null) => {

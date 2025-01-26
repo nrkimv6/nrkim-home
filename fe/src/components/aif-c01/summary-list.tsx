@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { useItemsRefSync, useSync, SyncContextType } from "./sync-context";
 import { Switch } from "../ui/switch";
 import { getSummary, getSummaryByGroup, ScrollTrigger, stringToTime, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
-import { useEffect, useMemo, useState, memo } from "react";
+import { useEffect, useMemo, useState, memo, useImperativeHandle, forwardRef } from "react";
 import { Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
@@ -52,8 +52,9 @@ export function SummaryList({
   currentTimeMs,
   onTimeSelect,
   autoScroll,
-  setAutoScroll
- }: SummaryListProps) {
+  setAutoScroll,
+  updateFlag
+}: SummaryListProps) {
   const { setActiveItem, activeItem } = useSync();
 
   const { setItemRef, getItemRef, getTypeRefs } = useItemsRefSync('summary');
@@ -219,6 +220,32 @@ export function SummaryList({
     }
   }, [activeItem, pendingUpdate]);
 
+  const handleGroupClick = (group: SummaryGroup) => {
+    const summary = getSummaryByGroup(summaryGroups, group.id);
+    if (summary) {
+      const newTime = stringToTime(group.startTime);
+      setTargetTime(newTime);
+      setIsManualScrolling(true);
+      setActiveItem({
+        type: 'summary',
+        id: summary.id,
+        time: null
+      });
+      setPendingUpdate({summaryId: summary.id, time: newTime});
+      setScrollKey(group.id);
+    }
+  };
+
+  useEffect(() => {
+    if (updateFlag.flag > 0 && updateFlag.groupId) {
+      const group = summaryGroups.find(g => g.id === updateFlag.groupId);
+      console.debug(`updateFlag: ${updateFlag.flag}, groupId: ${updateFlag.groupId}`);
+      if (group) {
+        handleGroupClick(group);
+      }
+    }
+  }, [updateFlag]);
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -253,19 +280,7 @@ export function SummaryList({
                 ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
             )}
             onClick={() => {
-              const summary = getSummaryByGroup(summaryGroups, group.id);
-              if (summary) {
-                const newTime = stringToTime(group.startTime);
-                setTargetTime(newTime);
-                setIsManualScrolling(true);  // 수동 스크롤 상태 설정
-                setActiveItem({
-                  type: 'summary',
-                  id: summary.id,
-                  time: null
-                });
-                setPendingUpdate({summaryId: summary.id, time: newTime});
-                setScrollKey(group.id);  // scrollKey를 통한 스크롤 처리
-              }
+              handleGroupClick(group);
             }}
           >
             <div className={cn(

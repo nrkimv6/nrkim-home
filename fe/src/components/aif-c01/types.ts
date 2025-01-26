@@ -39,10 +39,16 @@ export interface SummaryGroup {
   sourceIndex: number
 }
 
+export interface TimestampItem {
+  id: number;
+  time: string;
+}
+
+
 export interface SubtitleListProps {
   subtitleGroups: SubtitleGroup[];
   currentTimeMs: number;
-  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary', options?: { sourceIndex?: number; sequence?: number; }) => void;
+  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary' | 'timestamp', options?: { sourceIndex?: number; sequence?: number; }) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
   isManualScrolling: boolean;
@@ -52,11 +58,19 @@ export interface SubtitleListProps {
 export interface SummaryListProps {
   summaryGroups: SummaryGroup[];
   currentTimeMs: number;
-  onTimeSelect: (time: number|null, type: 'subtitle' | 'summary', options?: {
+  onTimeSelect: (time: number|null, type: 'subtitle' | 'summary' | 'timestamp', options?: {
     sourceIndex: number;
     sequence?: number;
     shortcut?: number;
   }) => void;
+  autoScroll: boolean;
+  setAutoScroll: (value: boolean) => void;
+  updateFlag: { flag: number; groupId: string | number };
+}
+export interface TimestampListProps {
+  timestamps: TimestampItem[];
+  currentTimeMs: number;
+  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary' | 'timestamp', data?: any) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
 }
