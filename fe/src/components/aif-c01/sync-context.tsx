@@ -3,7 +3,7 @@ import { ScrollTrigger } from './types';
 
 export interface TimeState {
     currentTimeMs: number;
-    isTimeUpdateEnabled: boolean;
+    pendingTimeMs: number | null;
     disableCount: number;
 }
 
@@ -38,8 +38,8 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     const [pendingScroll, setPendingScroll] = useState<SyncContextType['pendingScroll']>(null);
     const [timeState, setTimeState] = useState<TimeState>({
         currentTimeMs: 0,
-        isTimeUpdateEnabled: true,
-        disableCount: 0
+        pendingTimeMs: null,
+        disableCount: 0,
     });
 
     const setCurrentTime = useCallback((time: number) => {
@@ -49,24 +49,30 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     }, [timeState.disableCount]);
 
     const seekTo = useCallback((time: number) => {
-        setTimeState(prev => ({ ...prev, currentTimeMs: time }));
+        console.debug(`seekTo: ${time}, disableCount: ${timeState.disableCount}`);
+        setTimeState(prev => ({
+            ...prev,
+            currentTimeMs: prev.disableCount === 0 ? time : prev.currentTimeMs,
+            pendingTimeMs: prev.disableCount !== 0 ? time : null
+        }));
     }, []);
 
     const enableTimeUpdate = useCallback(() => {
-        setTimeState(prev => {
-            const newCount = Math.max(0, prev.disableCount - 1);
-            return {
-                ...prev,
-                isTimeUpdateEnabled: newCount === 0,
-                disableCount: newCount
-            };
-        });
+        console.debug(`enableTimeUpdate: ${timeState.disableCount}`);
+        setTimeState(prev => ({
+            ...prev,
+            disableCount: Math.max(0, prev.disableCount - 1),
+            currentTimeMs: prev.disableCount === 1 && prev.pendingTimeMs !== null 
+                ? prev.pendingTimeMs 
+                : prev.currentTimeMs,
+            pendingTimeMs: prev.disableCount === 1 ? null : prev.pendingTimeMs
+        }));
     }, []);
 
     const disableTimeUpdate = useCallback(() => {
+        console.debug(`disableTimeUpdate: ${timeState.disableCount}`);
         setTimeState(prev => ({
             ...prev,
-            isTimeUpdateEnabled: false,
             disableCount: prev.disableCount + 1
         }));
     }, []);

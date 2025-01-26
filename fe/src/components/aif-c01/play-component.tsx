@@ -16,7 +16,7 @@ export function PlayComponent() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playerReady, setPlayerReady] = useState(false)
   const [activeTab, setActiveTab] = useState("video")
-  const [currentTimeMs, setCurrentTimeMs] = useState(0)
+  // const [currentTimeMs, setCurrentTimeMs] = useState(0)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [currentImage, setCurrentImage] = useState("")
   const [isPlaying, setIsPlaying] = useState(false)
@@ -26,8 +26,10 @@ export function PlayComponent() {
   const [isManualScrolling, setIsManualScrolling] = useState(false)
   const [skipMountScroll, setSkipMountScroll] = useState(false)
 
-  const { activeItem, setActiveItem, setPendingScroll, pendingScroll, timeState, setCurrentTime, seekTo, disableTimeUpdate, enableTimeUpdate } = useSync();
+  const { activeItem, setActiveItem, setPendingScroll, pendingScroll, timeState,  setCurrentTime,  seekTo, disableTimeUpdate, enableTimeUpdate } = useSync();
   const [activeBottomTab, setActiveBottomTab] = useState("summary");
+  const currentTimeMs = useMemo(() => Math.floor(timeState.currentTimeMs * 1000), [timeState]);
+
 
   const videos: Video[] = [
     {
@@ -100,8 +102,9 @@ export function PlayComponent() {
   const startTimeSync = () => {
     timeUpdateInterval.current = setInterval(() => {
       if (playerRef.current) {
-        const currentTime = playerRef.current.getCurrentTime() * 1000
-        setCurrentTime(currentTime)
+        const currentTime = playerRef.current.getCurrentTime()
+        setCurrentTime(currentTime);
+        // console.debug(`currentTime: ${currentTime}, disableCount: ${timeState.disableCount}`);
       }
     }, 100)
   }
@@ -117,7 +120,7 @@ export function PlayComponent() {
     const percent = (e.clientX - rect.left) / rect.width
     const newTimeMs = percent * totalDurationMs
 
-    setCurrentTimeMs(newTimeMs)
+    seekTo(newTimeMs)
     playerRef.current?.seekTo(newTimeMs / 1000, true)
   }
 
@@ -164,13 +167,16 @@ export function PlayComponent() {
             setActiveBottomTab('subtitle');
 
             playerRef.current?.seekTo(summaryTime / 1000, true);
-            setCurrentTime(summaryTime);  // setCurrentTimeMs 대신 setCurrentTime 사용
+            // setCurrentTime(summaryTime);  // setCurrentTimeMs 대신 setCurrentTime 사용
+            seekTo(summaryTime);
           });
         }
       }
     } else if (time) {
       playerRef.current?.seekTo(time / 1000, true);
-      setCurrentTime(time);  // setCurrentTimeMs 대신 setCurrentTime 사용
+      // setCurrentTime(time);  // setCurrentTimeMs 대신 setCurrentTime 사용
+      seekTo(time);
+
       if (activeItem?.type === 'summary' && activeItem?.id != null) {
         //skip to setActionItem (itself)
       }
@@ -269,7 +275,7 @@ export function PlayComponent() {
 
   // 1) 현재 활성화된 그룹 찾기
   const currentGroup = useMemo(() => {
-    if (activeItem?.type === 'summary') {
+    if (activeItem?.type === 'summary' && activeItem?.id != null) {
       // activeItem이 summary인 경우
       const group = summaryGroups.find(group =>
         group.items.some(item => item.id === activeItem.id)
@@ -284,6 +290,7 @@ export function PlayComponent() {
       (a, b) => stringToTime(a.startTime) - stringToTime(b.startTime)
     );
 
+
     const currentIdx = sortedGroups.findIndex(group =>
       currentTimeMs >= stringToTime(group.startTime) &&
       currentTimeMs < stringToTime(group.endTime)
@@ -292,6 +299,8 @@ export function PlayComponent() {
     if (currentIdx !== -1) {
       return { current: sortedGroups[currentIdx] };
     }
+
+    console.debug(`currentIdx: ${currentIdx}, activeId : ${activeItem?.id}`);
 
     // 현재 시간이 속한 그룹이 없는 경우, 전후 그룹 찾기
     const nextIdx = sortedGroups.findIndex(group => 
@@ -318,6 +327,7 @@ export function PlayComponent() {
 
   useEffect(() => {
     if (currentGroup) {
+      // console.debug(`currentGroup: ${JSON.stringify(currentGroup)}`);
       if (currentGroup.current) {
         setCurrentTitle(currentGroup.current.title);
       } else if (currentGroup.previous && currentGroup.next) {
@@ -343,7 +353,8 @@ export function PlayComponent() {
 
   // 비디오 재생 중 시간 업데이트
   const handleTimeUpdate = (time: number) => {
-    setCurrentTime(time);
+    // console.debug(`handleTimeUpdate: ${time}`);
+    // setCurrentTime(time);
   };
 
   // 시간 포맷팅 함수 추가
@@ -371,7 +382,7 @@ export function PlayComponent() {
                   videoId={videos[currentVideoIndex].videoId}
                   onReady={() => setPlayerReady(true)}
                   onStateChange={handlePlayerStateChange}
-                  onTimeUpdate={handleTimeUpdate}
+                  onTimeUpdate={handleTimeUpdate }
                   onPlayerReady={(player) => playerRef.current = player}
                 />
               </div>

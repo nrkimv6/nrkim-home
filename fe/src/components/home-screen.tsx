@@ -148,7 +148,7 @@ guest@narang:~$ _`
     }, [showButton, showSnakeGame, showPentrisGame])
 
     return (
-        <>
+        <div className="home-page">
             {showMonitor && (
                 <div className="home-screen">
                     <CRTMonitor isShuttingDown={isShuttingDown}>
@@ -168,6 +168,6 @@ guest@narang:~$ _`
             )}
             {showSnakeGame && <SnakeGame />}
             {showPentrisGame && <PentrisGame />}
-        </>
+        </div>
     )
 } 
