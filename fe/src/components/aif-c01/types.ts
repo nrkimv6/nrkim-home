@@ -19,7 +19,7 @@ export interface SubtitleItem {
 
 export interface SubtitleGroup {
   id: number;
-  groupTimestamp: string;
+  timestamp: string;
   items: SubtitleItem[];
   sourceIndex: number;
 }
@@ -42,16 +42,14 @@ export interface SummaryGroup {
 export interface SubtitleListProps {
   subtitleGroups: SubtitleGroup[];
   currentTimeMs: number;
-  onTimeSelect: (time: number|null, type: 'subtitle' | 'summary', options?: {
-    sourceIndex: number;
-    sequence?: number;
-    shortcut?: number;
-  }) => void;
+  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary', options?: { sourceIndex?: number; sequence?: number; }) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
- }
- 
- export  interface SummaryListProps {
+  isManualScrolling: boolean;
+  skipMountScroll: boolean;
+}
+
+export interface SummaryListProps {
   summaryGroups: SummaryGroup[];
   currentTimeMs: number;
   onTimeSelect: (time: number|null, type: 'subtitle' | 'summary', options?: {
@@ -61,8 +59,7 @@ export interface SubtitleListProps {
   }) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
- }
- 
+}
 
 export const stringToTime = (timeStr: string): number => {
   const [hours, minutes, seconds] = timeStr.split(":").map(Number)
@@ -76,3 +73,55 @@ export enum ScrollTrigger {
   AUTO_SCROLL = 'AUTO_SCROLL',             // 자동 스크롤,              // 비디오 시간 변경
   AFTER_MOUNT = 'AFTER_MOUNT'  
 }
+
+
+export const getSubtitle = (subtitleGroups:SubtitleGroup[], sourceIndex:number, sequence:number)=>{
+  for (const group of subtitleGroups) {
+    if (group.sourceIndex === sourceIndex) {
+      const item = group.items.find(item => item.sequence === sequence);
+      if (item) {
+        console.debug(`sourceIndex: ${sourceIndex}, sequence:${sequence}, item: ${item?.id}`)
+        return item;
+      }
+    }
+  }
+  return undefined;
+}
+
+export const getSubtitleAndGroupById = (subtitleGroups:SubtitleGroup[], id:number)=>{
+  for (const group of subtitleGroups) {
+    const item = group.items.find(item => item.id === id);
+    if (item) return { item, group };
+  }
+  return undefined;
+}
+
+
+export const getTargetkeyById = (subtitleGroups:SubtitleGroup[], id:number)=>{
+  const result = getSubtitleAndGroupById(subtitleGroups, id);
+  if(!result) return null;
+  const { item, group } = result;
+
+  if( item && group){
+    return `${group.sourceIndex}-${item.sequence}`;
+  }
+  return null;
+}
+
+
+export const getSummary = (summaryGroups:SummaryGroup[], id:number)=>{
+  for (const group of summaryGroups) {
+      const item = group.items.find(item => item.id === id);
+      if (item) return item;
+  }
+  return undefined;
+}
+
+
+export const getSummaryByGroup = (summaryGroups:SummaryGroup[], group_id:number)=>{
+  const group =  summaryGroups.find(group => group.id === group_id);
+  if(!group || group.items.length === 0) return undefined;
+  return group.items[0];
+}
+
+

@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils"
 import { Switch } from "@/components/ui/switch"
-import { useScrollSync, useSync } from "./sync-context";
-import { stringToTime, SubtitleGroup, SubtitleItem, SubtitleListProps } from "./types";
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useItemsRefSync, useSync } from "./sync-context";
+import { getSubtitle, getTargetkeyById, stringToTime, SubtitleGroup, SubtitleItem, SubtitleListProps } from "./types";
+import { useEffect, useRef, useMemo, useState, forwardRef, ForwardedRef } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
 import { ScrollTrigger } from "./types"
@@ -14,12 +14,16 @@ export function SubtitleList({
   autoScroll,
   setAutoScroll,
   isManualScrolling,
-}: SubtitleListProps & { isManualScrolling: boolean }) {
-  const { activeItem } = useSync();
-  const { setItemRef, itemRefs, getItemRef } = useScrollSync('subtitle');
-  const [targetKey, setTargetKey] = useState<{ key: string, trigger: ScrollTrigger } | null>(null);
-  const [mount, setMount] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  skipMountScroll
+}: SubtitleListProps) {
+  const {pendingScroll, activeItem} = useSync();
+  const { setItemRef, getItemRef } = useItemsRefSync('subtitle');
+  const [targetItem, setTargetItem] = useState<{ id: number, key?: string, trigger: ScrollTrigger } | null>(null);
+  // const [targetItem, setTargetItem] = useState<number | null>(null);
+  const isInitialScrollCompleteRef = useRef<boolean>(false);
+
+  // const memoizedTargetKey = useMemo(() => targetKey, [targetKey?.key, targetKey?.trigger]);
+  const memoizedTargetItem = useMemo(() => targetItem, [targetItem?.id, targetItem?.key, targetItem?.trigger]);
 
   // 현재 시간에 해당하는 자막 항목들을 찾는 함수
   const getCurrentItems = useMemo(() => {
@@ -35,36 +39,118 @@ export function SubtitleList({
     return currentItems;
   }, [currentTimeMs, subtitleGroups]);
 
+  const getSubtitleItem = (targetKey: string) => {
+    const [sourceIndex, sequence] = targetKey.split('-');
+    return getSubtitle(subtitleGroups, parseInt(sourceIndex), parseInt(sequence));
+  }
+
+  // 스크롤 실행
+  useEffect(() => {
+    if (memoizedTargetItem?.id) {
+      const targetKey = memoizedTargetItem.key || getTargetkey(memoizedTargetItem.id);
+
+      if (!targetKey) {
+        console.error(`targetKey is null, id: ${memoizedTargetItem?.id}`);
+        return;
+      }
+
+      const targetElement = getItemRef(targetKey);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        console.debug(`targetKey: ${targetKey}, id: ${memoizedTargetItem?.id}, trigger: ${memoizedTargetItem.trigger}, currentTimeMs: ${currentTimeMs}`);
+
+        if (memoizedTargetItem.trigger === ScrollTrigger.AFTER_MOUNT) {
+          isInitialScrollCompleteRef.current = true;
+        }
+      }
+    }
+  }, [memoizedTargetItem]);
+
+  // useEffect(()=>{},[targetKey]);
+
+  // const setTargetKey = (key: string, trigger: ScrollTrigger) => {
+  //   const item = getSubtitleItem(key);
+  //   if (item?.id) {
+  //     setTargetItem({ id: item?.id, key, trigger });
+  //   }
+  //   else {
+  //     console.error(`targetKey: ${key}, trigger: ${trigger}, item: ${item?.id}`);
+  //     setTargetItem({ id: item?.id || 0, key, trigger });
+  //   }
+  // }
+
   // 자동 스크롤
   useEffect(() => {
-    if (!autoScroll || isManualScrolling || !mount || !initialized) return;
+    if (!autoScroll || isManualScrolling || !isInitialScrollCompleteRef.current) return;
 
     const currentItems = getCurrentItems;
     if (currentItems.length > 0) {
       const firstItem = currentItems[0];
       const group = subtitleGroups.find(g =>
-        g.items.some(item => item.sequence === firstItem.sequence)
+        g.items.some(item => item.id === firstItem.id)
       );
       if (group) {
-        const key = `${group.sourceIndex}-${firstItem.sequence}`;
-        setTargetKey({ key, trigger: ScrollTrigger.AUTO_SCROLL });
+        // console.debug(`Autoscroll - firstItem: ${firstItem.id}`);
+        setTargetItem({
+          id: firstItem.id,
+          trigger: ScrollTrigger.AUTO_SCROLL
+        }
+        );
       }
     }
-  }, [currentTimeMs, autoScroll, getCurrentItems, subtitleGroups, isManualScrolling, mount, initialized]);
+  }, [currentTimeMs, autoScroll, isManualScrolling]);
 
-  useEffect(() => {
-    if (targetKey && itemRefs.current) {
-      const targetElement = getItemRef(targetKey.key);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        console.debug(`targetKey: ${targetKey.key}, id:${targetElement.id} trigger: ${targetKey.trigger}`)
-      }
-      else {
-        console.debug(`targetKey: ${targetKey?.key} not found`)
+  // // 마운트 시 스크롤
+  // useEffect(() => {
+  //   if (skipMountScroll) return;
 
+  //   if (pendingScroll?.sourceIndex && pendingScroll?.sequence) {
+  //     console.debug(`Mount with scroll - sourceIndex: ${pendingScroll.sourceIndex}, sequence: ${pendingScroll.sequence}`);
+
+  //     setTargetKey(`${pendingScroll.sourceIndex}-${pendingScroll.sequence}`,ScrollTrigger.AFTER_MOUNT);
+  //   } else {
+  //     // pendingScroll이 없는 경우 현재 시간 기준으로 스크롤
+  //     const currentItems = getCurrentItems;
+  //     if (currentItems.length > 0) {
+  //       const firstItem = currentItems[0];
+  //       const group = subtitleGroups.find(g =>
+  //         g.items.some(item => item.sequence === firstItem.sequence)
+  //       );
+  //       if (group) {
+  //         console.debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
+  //         setTargetItem({ id: firstItem.id, trigger: ScrollTrigger.AFTER_MOUNT });
+  //       }
+  //     }
+  //   }
+  // }, []); // 빈 의존성 배열로 마운트 시 1번만 실행
+
+
+    // 마운트 시 스크롤
+    useEffect(() => {
+      if (skipMountScroll) return;
+  
+      if (pendingScroll?.targetId) {
+
+        console.debug(`Mount with scroll - targetId: ${pendingScroll.targetId}`);
+        setTargetItem({ id: pendingScroll?.targetId, trigger: ScrollTrigger.AFTER_MOUNT });
+  
+        // setTargetKey(`${pendingScroll.sourceIndex}-${pendingScroll.sequence}`,ScrollTrigger.AFTER_MOUNT);
+      } else {
+        // pendingScroll이 없는 경우 현재 시간 기준으로 스크롤
+        const currentItems = getCurrentItems;
+        if (currentItems.length > 0) {
+          const firstItem = currentItems[0];
+          const group = subtitleGroups.find(g =>
+            g.items.some(item => item.sequence === firstItem.sequence)
+          );
+          if (group) {
+            console.debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
+            setTargetItem({ id: firstItem.id, trigger: ScrollTrigger.AFTER_MOUNT });
+          }
+        }
       }
-    }
-  }, [targetKey]);
+    }, []); // 빈 의존성 배열로 마운트 시 1번만 실행
+  
 
   const totalItems = useMemo(() =>
     subtitleGroups.reduce((acc, group) => acc + group.items.length, 0)
@@ -77,23 +163,20 @@ export function SubtitleList({
     if (currentItems.length > 0) {
       const firstItem = currentItems[0];
       const group = subtitleGroups.find(g =>
-        g.items.some(item => item.sequence === firstItem.sequence)
+        g.items.some(item => item.id === firstItem.id)
       );
       if (group) {
         const key = `${group.sourceIndex}-${firstItem.sequence}`;
-        setTargetKey({ key, trigger: trigger });
+        // setTargetKey(key, trigger );
+        console.debug(`List selection - firstItem: ${firstItem.id}`);
+        setTargetItem({ id: firstItem.id, trigger });
       }
     }
   };
 
-  // 컴포넌트 마운트 또는 탭 전환 시 현재 항목으로 스크롤
-  useEffect(() => {
-    scrollToCurrentItem(undefined, ScrollTrigger.AFTER_MOUNT);
-    setMount(true);
-    setTimeout(() => {
-      setInitialized(true);
-    }, 1000);
-  }, []);
+  const getTargetkey = (id: number) => {
+    return getTargetkeyById(subtitleGroups, id);
+  }
 
   return (
     <>
@@ -130,7 +213,7 @@ export function SubtitleList({
             )}
           >
             <div className="text-sm font-medium text-muted-foreground">
-              {group.groupTimestamp}
+              {group.timestamp}
             </div>
             <div className="space-y-1">
               {group.items.map((subtitle) => (

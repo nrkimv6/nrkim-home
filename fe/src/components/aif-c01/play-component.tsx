@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { VideoPlayer } from "./video-player"
 import { SubtitleList } from "./subtitle-list"
 import { SummaryList } from "./summary-list"
-import { useSync } from "./sync-context"
-import { stringToTime, SubtitleGroup, SummaryGroup, Video, ScrollTrigger } from "./types"
+import { useItemsRefSync, useSync } from "./sync-context"
+import { stringToTime, SubtitleGroup, SummaryGroup, Video, ScrollTrigger, getSubtitle } from "./types"
+import React from "react"
 
 
 export function PlayComponent() {
@@ -23,8 +24,9 @@ export function PlayComponent() {
   const [summaryGroups, setSummaryGroups] = useState<SummaryGroup[]>([])
   const [autoScroll, setAutoScroll] = useState(true)
   const [isManualScrolling, setIsManualScrolling] = useState(false)
+  const [skipMountScroll, setSkipMountScroll] = useState(false)
 
-  const { setActiveItem, setPendingScroll } = useSync();
+  const { setActiveItem, setPendingScroll, pendingScroll } = useSync();
   const [activeBottomTab, setActiveBottomTab] = useState("summary");
 
   const videos: Video[] = [
@@ -77,10 +79,10 @@ export function PlayComponent() {
       }
     };
 
-    if(subtitleGroups.length === 0){
+    if (subtitleGroups.length === 0) {
       loadSubtitles();
     }
-    if(summaryGroups.length === 0){
+    if (summaryGroups.length === 0) {
       loadSummaries();
     }
   }, []);
@@ -119,19 +121,13 @@ export function PlayComponent() {
     playerRef.current?.seekTo(newTimeMs / 1000, true)
   }
 
-  const getSubTitleItem = (sourceIndex:number, sequence:number)=>{
-    for (const group of subtitleGroups) {
-      if (group.sourceIndex === sourceIndex) {
-        const item = group.items.find(item => item.sequence === sequence);
-        if (item) return item;
-      }
-    }
-    return undefined;
+  const getSubTitleItem = (sourceIndex: number, sequence: number) => {
+    return getSubtitle(subtitleGroups, sourceIndex, sequence);
   }
 
   const getSummaryTime = (sourceIndex: number, sequence: number) => {
     const subtitleItem = getSubTitleItem(sourceIndex, sequence);
-    if( subtitleItem){
+    if (subtitleItem) {
       return stringToTime(subtitleItem.startTime);
     }
     return null;
@@ -141,90 +137,109 @@ export function PlayComponent() {
     sourceIndex?: number;
     sequence?: number;
   }) => {
+    console.log(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
+
     if (type === 'summary' && options?.sequence) {
-      setIsManualScrolling(true);
       const subTitle = getSubTitleItem(options.sourceIndex || 0, options.sequence);
 
-      if(subTitle){
-        console.debug(`subTitle: ${subTitle.id}`)
-        const summaryTime = stringToTime(subTitle?.startTime || '00:00:00.000');
-        playerRef.current?.seekTo(summaryTime / 1000, true);
-        setCurrentTimeMs(summaryTime);
-        setPendingScroll({
-          sourceIndex: options.sourceIndex,
-          sequence: options.sequence,
-          trigger: ScrollTrigger.SHORTCUT
-        });
-      }
-      else{
-        console.debug(`subTitle not found for ${options.sourceIndex} ${options.sequence}`)
-      }
+      if (subTitle) {
+        const summaryTime = stringToTime(subTitle.startTime);
 
-      setActiveBottomTab('subtitle');
+        if (activeBottomTab !== 'subtitle') {
+          // setSkipMountScroll(true);
+
+          // const timer = setTimeout(() => {
+          //   setSkipMountScroll(false);
+          // }, 1000);
+
+          React.startTransition(() => {
+            setPendingScroll({
+              targetId: subTitle.id,
+              // sourceIndex: options.sourceIndex,
+              // sequence: options.sequence,
+              trigger: ScrollTrigger.SHORTCUT
+            });
+
+            setActiveItem({
+              type,
+              id: subTitle.id,
+              time: summaryTime,
+              trigger: ScrollTrigger.SHORTCUT
+            });
+
+            setActiveBottomTab('subtitle');
+
+            playerRef.current?.seekTo(summaryTime / 1000, true);
+            console.log(`summaryTime: ${summaryTime}`);
+            setCurrentTimeMs(summaryTime);
+          });
+
+          // return () => clearTimeout(timer);
+        }
+      }
+    } else if (time) {
+      playerRef.current?.seekTo(time / 1000, true);
+      setCurrentTimeMs(time);
       setActiveItem({
         type,
-        id: subTitle?.id || null,
+        id: null,
         time: time,
         trigger: ScrollTrigger.SHORTCUT
       });
-
-      setTimeout(() => {
-        setIsManualScrolling(false);
-      }, 1000);
-    }
-    else {
-      if (time) {
-        setCurrentTimeMs(time);
-        playerRef.current?.seekTo(time / 1000, true);
-        setActiveItem({
-          type,
-          id: null,
-          time: time,
-          trigger: ScrollTrigger.SHORTCUT
-        });
-      }
     }
   };
+
+
+  const setSubtitleByCurrentTime = () => {
+    const subTitle = subtitleGroups
+      .flatMap(group => group.items)
+      .find(item => currentTimeMs >= stringToTime(item.startTime) &&
+        currentTimeMs < stringToTime(item.endTime)
+      )
+
+    if (subTitle) {
+      const group = subtitleGroups.find(g => g.items.some(item => item.id === subTitle.id)
+      )
+      if (group) {
+        setPendingScroll({
+          targetId: subTitle.id,
+        })
+        setActiveItem({
+          type: 'subtitle',
+          id: subTitle.id,
+          time: currentTimeMs
+        })
+      }
+    }
+  }
+
+  const setSummaryByCurrentTime = () => {
+    const summary = summaryGroups.find(group =>
+      currentTimeMs >= stringToTime(group.startTime) &&
+      currentTimeMs < stringToTime(group.endTime)
+    );
+
+    if (summary) {
+      setActiveItem({
+        type: 'summary',
+        id: summary.id,
+        time: currentTimeMs
+      });
+    }
+  }
 
   // 탭 변경 시 현재 시간에 해당하는 항목으로 스크롤
   useEffect(() => {
     if (activeBottomTab === 'subtitle') {
-      const subTitle = subtitleGroups
-        .flatMap(group => group.items)
-        .find(item =>
-          currentTimeMs >= stringToTime(item.startTime) &&
-          currentTimeMs < stringToTime(item.endTime)
-        );
 
-      if (subTitle) {
-        const group = subtitleGroups.find(g => 
-          g.items.some(item => item.id === subTitle.id)
-        );
-        if (group) {
-          setPendingScroll({
-            sourceIndex: group.sourceIndex,
-            sequence: subTitle.sequence
-          });
-          setActiveItem({
-            type: 'subtitle',
-            id: subTitle.id,
-            time: currentTimeMs
-          });
-        }
+      if (pendingScroll?.targetId) {
+        //do nothing
+      }
+      else {
+        setSubtitleByCurrentTime()
       }
     } else if (activeBottomTab === 'summary') {
-      const summary = summaryGroups.find(group =>
-        currentTimeMs >= stringToTime(group.startTime) &&
-        currentTimeMs < stringToTime(group.endTime)
-      );
-
-      if (summary) {
-        setActiveItem({
-          type: 'summary',
-          id: summary.id,
-          time: currentTimeMs
-        });
-      }
+      setSummaryByCurrentTime();
     }
   }, [activeBottomTab]);
 
@@ -335,6 +350,7 @@ export function PlayComponent() {
                   autoScroll={autoScroll}
                   setAutoScroll={setAutoScroll}
                   isManualScrolling={isManualScrolling}
+                  skipMountScroll={skipMountScroll}
                 />
               </TabsContent>
             </Tabs>

@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
-import { useScrollSync, useSync } from "./sync-context";
+import { useItemsRefSync, useSync } from "./sync-context";
 import { Switch } from "../ui/switch";
-import { ScrollTrigger, stringToTime, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
+import { getSummary, getSummaryByGroup, ScrollTrigger, stringToTime, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -16,11 +16,15 @@ export function SummaryList({
   autoScroll,
   setAutoScroll
  }: SummaryListProps) {
-  const { activeItem } = useSync();
-  const { setItemRef, itemRefs, getItemRef } = useScrollSync('summary');
-  const [ targetKeys, setTargetKeys] = useState<number[]>([]);
+  const { setActiveItem, activeItem } = useSync();
+
+  const { setItemRef, getItemRef, getTypeRefs } = useItemsRefSync('summary');
+  const [ targetGroups, setTargetGroups] = useState<number[]>([]);
   const [currentVisibleGroup, setCurrentVisibleGroup] = useState<number | null>(null);
   const [scrollKey, setScrollKey] = useState<number | null>(null);
+  const itemRefs = getTypeRefs('summary');
+  const [isManualScrolling, setIsManualScrolling] = useState(false);
+  const [targetTime, setTargetTime] = useState<number | null>(null);
 
   // 현재 시간에 해당하는 요약 그룹들을 찾는 함수
   const getCurrentItems = useMemo(() => {
@@ -31,17 +35,37 @@ export function SummaryList({
   }, [currentTimeMs, summaryGroups]);
 
   useEffect(() => {
-    scrollToCurrentItem();
+    if(!activeItem || activeItem.type != 'summary'){
+      const currentItems = getCurrentItems;
+      if (currentItems.length > 0) {
+        const targetGroup = getItemRef(currentItems[0].id.toString());
+        const summary =getSummaryByGroup(summaryGroups, currentItems[0].id);
+        if(summary){
+          setActiveItem({
+            type: 'summary',
+            id: summary?.id,
+            time: null
+          });
+          console.debug(`setScrollKey by mount: ${currentItems[0].id}, targetElement: ${currentItems[0].id} and ${summary?.id}`);
+          setScrollKey(currentItems[0].id);
+        }
+      }
+      }
+      else{
+        scrollToCurrentItem();
+        console.debug(`scroll to currenItem by mount: ${activeItem.id}`);
+      }
   }, []);
 
-  // 현재 화면에 보이는 그룹을 추적하는 observer 설정
+  // 현재 화면에 보이는 그룹을 추적하는 observer 설정 --> 정상적인 동작 안할거 같음
   useEffect(() => {
+    const itemRefs = getTypeRefs('summary');
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             // ref에서 직접 key를 찾습니다
-            const foundKey = Array.from(itemRefs.current?.entries() || [])
+            const foundKey = Array.from(itemRefs.entries() || [])
               .find(([_, element]) => element === entry.target)?.[0];
             if (foundKey) {
               setCurrentVisibleGroup(Number(foundKey));
@@ -52,7 +76,7 @@ export function SummaryList({
       { threshold: 0.5 }
     );
 
-    itemRefs.current?.forEach((element) => {
+    itemRefs?.forEach((element) => {
       observer.observe(element);
     });
 
@@ -61,33 +85,36 @@ export function SummaryList({
 
   // currentTimeMs 변경에 따른 스크롤 처리
   useEffect(() => {
-    if (!autoScroll) return;
+    if (!autoScroll || isManualScrolling) return;
 
     const currentItems = getCurrentItems;
     if (currentItems.length > 0) {
-      const newTargetKeys = currentItems.map(group => group.id);
+      const newTargetGroups = currentItems.map(group => group.id);
       
-      if (currentVisibleGroup && newTargetKeys.includes(currentVisibleGroup)) {
+      if (currentVisibleGroup && newTargetGroups.includes(currentVisibleGroup)) {
         return;
       }
       
-      setTargetKeys(newTargetKeys);
+      setTargetGroups(newTargetGroups);
     }
-  }, [currentTimeMs, autoScroll, getCurrentItems, currentVisibleGroup]);
+  }, [currentTimeMs, autoScroll, getCurrentItems, currentVisibleGroup, isManualScrolling]);
 
   useEffect(() => {
-    if (targetKeys.length > 0 && itemRefs.current) {
-      const targetElement = getItemRef(targetKeys[0].toString());
+    if (targetGroups.length > 0 && itemRefs) {
+      const targetElement = getItemRef(targetGroups[0].toString());
       if (targetElement) {
-        setScrollKey(targetKeys[0]);
+        console.debug(`setScrollKey by targetGroups[0]: ${targetGroups[0]}`);
+        setScrollKey(targetGroups[0]);
       }
     }
-  }, [targetKeys]);
+  }, [targetGroups]);
+
   useEffect(() => {
     console.debug(`scrollKey: ${scrollKey}`);
     if( scrollKey ){
       const targetElement = getItemRef(scrollKey.toString());
       if (targetElement) {
+        // console.debug(`scrollKey: ${scrollKey}, targetElement: ${targetElement}`);
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
@@ -112,12 +139,20 @@ export function SummaryList({
   const scrollToCurrentItem = (_e?: React.MouseEvent<HTMLButtonElement>) => {
     const currentItems = getCurrentItems;
     if (currentItems.length > 0) {
-      const targetElement = getItemRef(currentItems[0].id.toString());
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const targetGroup = getItemRef(currentItems[0].id.toString());
+      if (targetGroup) {
+        targetGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   };
+
+  // currentTimeMs가 targetTime과 일치하면 수동 스크롤 상태 해제
+  useEffect(() => {
+    if (targetTime !== null && Math.abs(currentTimeMs - targetTime) < 100) { // 100ms 오차 허용
+      setTargetTime(null);
+      setIsManualScrolling(false);
+    }
+  }, [currentTimeMs, targetTime]);
 
   return (
     <>
@@ -152,9 +187,20 @@ export function SummaryList({
               currentTimeMs < stringToTime(group.endTime)
                 ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
             )}
-            onClick={() => onTimeSelect(stringToTime(group.startTime), 'summary', {
-              sourceIndex: group.sourceIndex
-            })}
+            onClick={() => {
+              const summary = getSummaryByGroup(summaryGroups, group.id);
+              if (summary) {
+                const newTime = stringToTime(group.startTime);
+                setTargetTime(newTime);
+                setIsManualScrolling(true);
+                setActiveItem({
+                  type: 'summary',
+                  id: summary.id,
+                  time: null
+                });
+                onTimeSelect(newTime, 'summary');
+              }
+            }}
           >
             <div className={cn(
               "cursor-pointer hover:text-primary transition-colors flex justify-between items-center",
@@ -169,7 +215,11 @@ export function SummaryList({
               {group.items.map((summary) => (
                 <div
                   key={summary.id}
-                  className="flex gap-2 p-2 rounded transition-all duration-300 hover:bg-muted/50 items-start"
+                  
+                  className={
+                    cn("flex gap-2 p-2 rounded transition-all duration-300 hover:bg-muted/50 items-start",
+                    activeItem?.type === 'summary' && activeItem.id === summary.id ? "highlight" : "",
+                  )}
                 >
                   <span className="text-muted-foreground mt-1">•</span>
                   <div className="flex-1 flex items-center gap-2">

@@ -104,13 +104,14 @@ export default function ParserApp() {
         
         return groupedSentences.map((group, groupIndex) => {
             const sentences = Array.from(group.querySelectorAll('.eachChunk'));
-            const groupTimestamp = group.querySelector('.timestamp')?.textContent?.trim() || '00:00:00';
+            const groupTimeStampValue = group.querySelector('.timestamp')?.textContent?.trim() || '00:00:00';
+            const groupTimestamp = parseTime(groupTimeStampValue)+ buffer;
             
             const sentenceDetails = sentences.map((sentence, index) => {
                 const sequence = sentence.querySelector('.sentence-number')?.textContent;
                 const timestamp = sentence.querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content');
                 const text = sentence.textContent?.replace(/^\d+/, '').trim();
-                const startTime = parseTime(timestamp || groupTimestamp) + buffer;
+                const startTime = parseTime(timestamp || groupTimeStampValue) + buffer;
                 const endTime = index < sentences.length - 1
                     ? parseTime(sentences[index + 1].querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content') || '00:00:00') + buffer
                     : startTime + 5;
@@ -126,7 +127,8 @@ export default function ParserApp() {
             
             return {
                 id: groupIndex + 1,
-                groupTimestamp: groupTimestamp.replace(/[^\d:]/g, ''),
+                // timestamp: groupTimestamp.replace(/[^\d:]/g, ''),
+                timestamp: formatTime(groupTimestamp),
                 items: sentenceDetails
             };
         });
@@ -151,6 +153,7 @@ export default function ParserApp() {
         const parser = new DOMParser();
         const doc = parser.parseFromString(input, 'text/html');
         const sections = Array.from(doc.querySelectorAll('.node-lilysSection'));
+        const buffer = parseTime(timeBuffer);
 
         return sections
             .filter(section => section.querySelector('.node-listItem'))
@@ -163,6 +166,10 @@ export default function ParserApp() {
                 }
                 const timestamp = section.querySelector('.timestampString')?.textContent || '00:00:00';
                 const { startTime, endTime } = formatTimeRange(timestamp);
+                console.debug(`startTime: ${startTime}, endTime: ${endTime}`);
+                const startTimeValue = parseTime(startTime) + buffer;
+                const endTimeValue = parseTime(endTime) + buffer;
+                console.debug(`startTimeValue: ${startTimeValue}, endTimeValue: ${endTimeValue}`);
 
                 // Get items with HTML content converted to markdown
                 const items = Array.from(section.querySelectorAll('.node-listItem')).map((item, itemIndex) => {
@@ -202,8 +209,8 @@ export default function ParserApp() {
                 return {
                     id: groupIndex + 1,
                     title,
-                    startTime,
-                    endTime,
+                    startTime : formatTime(startTimeValue),
+                    endTime : formatTime(endTimeValue),
                     items: uniqueItems
                 };
             });
