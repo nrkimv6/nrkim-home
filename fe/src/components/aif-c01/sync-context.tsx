@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollTrigger } from './types';
 
-interface SyncContextType {
+export interface TimeState {
+    currentTimeMs: number;
+    isTimeUpdateEnabled: boolean;
+    disableCount: number;
+}
+
+export interface SyncContextType {
     activeItem: {
         type: 'subtitle' | 'summary' | null;
         id: number | null;
@@ -14,6 +20,11 @@ interface SyncContextType {
         trigger?: ScrollTrigger;
     } | null;
     setPendingScroll: (scroll: SyncContextType['pendingScroll']) => void;
+    timeState: TimeState;
+    setCurrentTime: (time: number) => void;
+    seekTo: (time: number) => void;
+    enableTimeUpdate: () => void;
+    disableTimeUpdate: () => void;
 }
 
 const SyncContext = createContext<SyncContextType | null>(null);
@@ -25,9 +36,53 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
         time: null
     });
     const [pendingScroll, setPendingScroll] = useState<SyncContextType['pendingScroll']>(null);
+    const [timeState, setTimeState] = useState<TimeState>({
+        currentTimeMs: 0,
+        isTimeUpdateEnabled: true,
+        disableCount: 0
+    });
+
+    const setCurrentTime = useCallback((time: number) => {
+        if (timeState.disableCount === 0) {
+            setTimeState(prev => ({ ...prev, currentTimeMs: time }));
+        }
+    }, [timeState.disableCount]);
+
+    const seekTo = useCallback((time: number) => {
+        setTimeState(prev => ({ ...prev, currentTimeMs: time }));
+    }, []);
+
+    const enableTimeUpdate = useCallback(() => {
+        setTimeState(prev => {
+            const newCount = Math.max(0, prev.disableCount - 1);
+            return {
+                ...prev,
+                isTimeUpdateEnabled: newCount === 0,
+                disableCount: newCount
+            };
+        });
+    }, []);
+
+    const disableTimeUpdate = useCallback(() => {
+        setTimeState(prev => ({
+            ...prev,
+            isTimeUpdateEnabled: false,
+            disableCount: prev.disableCount + 1
+        }));
+    }, []);
 
     return (
-        <SyncContext.Provider value={{ activeItem, setActiveItem, pendingScroll, setPendingScroll }}>
+        <SyncContext.Provider value={{
+            activeItem,
+            setActiveItem,
+            pendingScroll,
+            setPendingScroll,
+            timeState,
+            setCurrentTime,
+            seekTo,
+            enableTimeUpdate,
+            disableTimeUpdate
+        }}>
             {children}
         </SyncContext.Provider>
     );

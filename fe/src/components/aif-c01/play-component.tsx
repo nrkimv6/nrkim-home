@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect, SetStateAction } from "react"
+import { useRef, useState, useEffect, SetStateAction, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { VideoPlayer } from "./video-player"
@@ -26,7 +26,7 @@ export function PlayComponent() {
   const [isManualScrolling, setIsManualScrolling] = useState(false)
   const [skipMountScroll, setSkipMountScroll] = useState(false)
 
-  const { setActiveItem, setPendingScroll, pendingScroll } = useSync();
+  const { activeItem, setActiveItem, setPendingScroll, pendingScroll, timeState, setCurrentTime, seekTo, disableTimeUpdate, enableTimeUpdate } = useSync();
   const [activeBottomTab, setActiveBottomTab] = useState("summary");
 
   const videos: Video[] = [
@@ -101,7 +101,7 @@ export function PlayComponent() {
     timeUpdateInterval.current = setInterval(() => {
       if (playerRef.current) {
         const currentTime = playerRef.current.getCurrentTime() * 1000
-        setCurrentTimeMs(currentTime)
+        setCurrentTime(currentTime)
       }
     }, 100)
   }
@@ -139,6 +139,8 @@ export function PlayComponent() {
   }) => {
     console.log(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
 
+    disableTimeUpdate();  // 시간 업데이트 비활성화
+
     if (type === 'summary' && options?.sequence) {
       const subTitle = getSubTitleItem(options.sourceIndex || 0, options.sequence);
 
@@ -146,17 +148,9 @@ export function PlayComponent() {
         const summaryTime = stringToTime(subTitle.startTime);
 
         if (activeBottomTab !== 'subtitle') {
-          // setSkipMountScroll(true);
-
-          // const timer = setTimeout(() => {
-          //   setSkipMountScroll(false);
-          // }, 1000);
-
           React.startTransition(() => {
             setPendingScroll({
               targetId: subTitle.id,
-              // sourceIndex: options.sourceIndex,
-              // sequence: options.sequence,
               trigger: ScrollTrigger.SHORTCUT
             });
 
@@ -170,23 +164,28 @@ export function PlayComponent() {
             setActiveBottomTab('subtitle');
 
             playerRef.current?.seekTo(summaryTime / 1000, true);
-            console.log(`summaryTime: ${summaryTime}`);
-            setCurrentTimeMs(summaryTime);
+            setCurrentTime(summaryTime);  // setCurrentTimeMs 대신 setCurrentTime 사용
           });
-
-          // return () => clearTimeout(timer);
         }
       }
     } else if (time) {
       playerRef.current?.seekTo(time / 1000, true);
-      setCurrentTimeMs(time);
-      setActiveItem({
-        type,
-        id: null,
-        time: time,
-        trigger: ScrollTrigger.SHORTCUT
-      });
+      setCurrentTime(time);  // setCurrentTimeMs 대신 setCurrentTime 사용
+      if (activeItem?.type === 'summary' && activeItem?.id != null) {
+        //skip to setActionItem (itself)
+      }
+      else {
+        setActiveItem({
+          type,
+          id: null,
+          time: time,
+          trigger: ScrollTrigger.SHORTCUT
+        });
+      }
     }
+
+    // 시간 이동이 완료된 후 시간 업데이트 다시 활성화
+    setTimeout(enableTimeUpdate, 100);
   };
 
 
@@ -226,7 +225,30 @@ export function PlayComponent() {
         time: currentTimeMs
       });
     }
+    else {
+      // 현재 그룹이 없는 경우 (이전/다음 그룹 사이) ativeItem 초기화
+      setActiveItem({
+        type: null,
+        id: null,
+        time: currentTimeMs
+      });
+    }
   }
+  const setSummaryByCurrentGroup=()=>{
+    if (currentGroup?.current) {
+      const firstItem = currentGroup.current.items[0];
+      if (firstItem) {
+        setActiveItem({
+          type: 'summary',
+          id: firstItem.id,
+          time: currentTimeMs
+        });
+        console.debug('Set active summary from currentGroup:', firstItem.id);
+        return true;
+      }
+    } 
+    return false;
+  };
 
   // 탭 변경 시 현재 시간에 해당하는 항목으로 스크롤
   useEffect(() => {
@@ -239,9 +261,99 @@ export function PlayComponent() {
         setSubtitleByCurrentTime()
       }
     } else if (activeBottomTab === 'summary') {
-      setSummaryByCurrentTime();
+      if( !setSummaryByCurrentGroup()){
+        setSummaryByCurrentTime();
+      }
     }
   }, [activeBottomTab]);
+
+  // 1) 현재 활성화된 그룹 찾기
+  const currentGroup = useMemo(() => {
+    if (activeItem?.type === 'summary') {
+      // activeItem이 summary인 경우
+      const group = summaryGroups.find(group =>
+        group.items.some(item => item.id === activeItem.id)
+      );
+      if (group) {
+        return { current: group };
+      }
+    }
+
+    // 현재 시간에 해당하는 summary 찾기
+    const sortedGroups = [...summaryGroups].sort(
+      (a, b) => stringToTime(a.startTime) - stringToTime(b.startTime)
+    );
+
+    const currentIdx = sortedGroups.findIndex(group =>
+      currentTimeMs >= stringToTime(group.startTime) &&
+      currentTimeMs < stringToTime(group.endTime)
+    );
+
+    if (currentIdx !== -1) {
+      return { current: sortedGroups[currentIdx] };
+    }
+
+    // 현재 시간이 속한 그룹이 없는 경우, 전후 그룹 찾기
+    const nextIdx = sortedGroups.findIndex(group => 
+      currentTimeMs < stringToTime(group.startTime)
+    );
+
+    if (nextIdx === 0) {
+      // 첫 그룹 이전
+      return { next: sortedGroups[0] };
+    } else if (nextIdx === -1) {
+      // 마지막 그룹 이후
+      return { previous: sortedGroups[sortedGroups.length - 1] };
+    } else {
+      // 두 그룹 사이
+      return {
+        previous: sortedGroups[nextIdx - 1],
+        next: sortedGroups[nextIdx]
+      };
+    }
+  }, [activeItem, currentTimeMs, summaryGroups]);
+
+  // 2) 현재 그룹의 title 관리
+  const [currentTitle, setCurrentTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentGroup) {
+      if (currentGroup.current) {
+        setCurrentTitle(currentGroup.current.title);
+      } else if (currentGroup.previous && currentGroup.next) {
+        setCurrentTitle(`${currentGroup.previous.title} → ${currentGroup.next.title}`);
+      } else if (currentGroup.previous) {
+        setCurrentTitle(`${currentGroup.previous.title} 이후`);
+      } else if (currentGroup.next) {
+        setCurrentTitle(`${currentGroup.next.title} 이전`);
+      } else {
+        setCurrentTitle(null);
+      }
+    } else {
+      setCurrentTitle(null);
+    }
+  }, [currentGroup]);
+
+  // 시간 이동이 필요한 경우
+  const handleTimeSelect = (time: number) => {
+    disableTimeUpdate();  // 일시적으로 자동 시간 업데이트 비활성화
+    playerRef.current?.seekTo(time / 1000, true);  // 실제 비디오 시간 변경
+    setTimeout(enableTimeUpdate, 100);  // 시간 이동이 완료된 후 다시 활성화
+  };
+
+  // 비디오 재생 중 시간 업데이트
+  const handleTimeUpdate = (time: number) => {
+    setCurrentTime(time);
+  };
+
+  // 시간 포맷팅 함수 추가
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -259,7 +371,7 @@ export function PlayComponent() {
                   videoId={videos[currentVideoIndex].videoId}
                   onReady={() => setPlayerReady(true)}
                   onStateChange={handlePlayerStateChange}
-                  onTimeUpdate={setCurrentTimeMs}
+                  onTimeUpdate={handleTimeUpdate}
                   onPlayerReady={(player) => playerRef.current = player}
                 />
               </div>
@@ -280,7 +392,7 @@ export function PlayComponent() {
                     src={videos[currentVideoIndex].audio}
                     onTimeUpdate={(e) => {
                       const target = e.target as HTMLAudioElement
-                      setCurrentTimeMs(target.currentTime * 1000)
+                      setCurrentTime(target.currentTime * 1000)
                     }}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
@@ -324,6 +436,18 @@ export function PlayComponent() {
             </div>
           </div>
         </Tabs>
+
+        {/* 현재 summary title 표시 */}
+        <div className="my-4 px-4 py-2 bg-muted rounded-md flex items-center gap-3">
+          <span className="text-sm font-medium text-primary">현재: </span>
+          <span className="text-sm text-muted-foreground">
+            {currentTitle || "재생 중인 섹션 없음"}
+          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs text-muted-foreground">{formatTime(currentTimeMs)}</span>
+          </div>
+        </div>
 
         <Tabs value={activeBottomTab} onValueChange={setActiveBottomTab}>
           <TabsList>

@@ -1,13 +1,51 @@
 import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
-import { useItemsRefSync, useSync } from "./sync-context";
+import { useItemsRefSync, useSync, SyncContextType } from "./sync-context";
 import { Switch } from "../ui/switch";
 import { getSummary, getSummaryByGroup, ScrollTrigger, stringToTime, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import { Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
 
+// SummaryItem 컴포넌트를 분리
+const SummaryItemComponent = memo(({ 
+  summary, 
+  activeItem,
+  group,
+  handleShortcutClick 
+}: { 
+  summary: SummaryItem;
+  activeItem: SyncContextType['activeItem'];
+  group: SummaryGroup;
+  handleShortcutClick: (group: SummaryGroup, summary: SummaryItem, e: React.MouseEvent) => void;
+}) => {
+  const isActive = activeItem?.type === 'summary' && activeItem.id === summary.id;
+  
+  return (
+    <div
+      key={summary.id}
+      className={cn(
+        "flex gap-2 p-2 rounded transition-all duration-300 hover:bg-muted/50 items-start",
+        isActive ? "bg-primary/10 border-l-2 border-primary font-medium scale-[1.02]" : ""
+      )}
+    >
+      <span className="text-muted-foreground mt-1">•</span>
+      <div className="flex-1 flex items-center gap-2">
+        <ReactMarkdown className="text-foreground inline flex-1">
+          {summary.content}
+        </ReactMarkdown>
+        <button
+          onClick={(e) => handleShortcutClick(group, summary, e)}
+          className="text-primary hover:text-primary/80 transition-colors"
+          title={`바로가기 #${summary.shortcut}`}
+        >
+          <Link className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+});
 
 export function SummaryList({
   summaryGroups,
@@ -25,6 +63,7 @@ export function SummaryList({
   const itemRefs = getTypeRefs('summary');
   const [isManualScrolling, setIsManualScrolling] = useState(false);
   const [targetTime, setTargetTime] = useState<number | null>(null);
+  const [pendingUpdate, setPendingUpdate] = useState<{summaryId: number, time: number} | null>(null);
 
   // 현재 시간에 해당하는 요약 그룹들을 찾는 함수
   const getCurrentItems = useMemo(() => {
@@ -48,6 +87,15 @@ export function SummaryList({
           });
           console.debug(`setScrollKey by mount: ${currentItems[0].id}, targetElement: ${currentItems[0].id} and ${summary?.id}`);
           setScrollKey(currentItems[0].id);
+          console.log('Active Item Debug:', {
+            summary: summary,
+            activeItemBefore: activeItem,
+            newActiveItem: {
+              type: 'summary',
+              id: summary.id,
+              time: null
+            }
+          });
         }
       }
       }
@@ -58,43 +106,47 @@ export function SummaryList({
   }, []);
 
   // 현재 화면에 보이는 그룹을 추적하는 observer 설정 --> 정상적인 동작 안할거 같음
-  useEffect(() => {
-    const itemRefs = getTypeRefs('summary');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            // ref에서 직접 key를 찾습니다
-            const foundKey = Array.from(itemRefs.entries() || [])
-              .find(([_, element]) => element === entry.target)?.[0];
-            if (foundKey) {
-              setCurrentVisibleGroup(Number(foundKey));
-            }
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+  // useEffect(() => {
+  //   const itemRefs = getTypeRefs('summary');
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       entries.forEach(entry => {
+  //         if (entry.isIntersecting) {
+  //           // ref에서 직접 key를 찾습니다
+  //           const foundKey = Array.from(itemRefs.entries() || [])
+  //             .find(([_, element]) => element === entry.target)?.[0];
+  //           if (foundKey) {
+  //             setCurrentVisibleGroup(Number(foundKey));
+  //           }
+  //         }
+  //       });
+  //     },
+  //     { threshold: 0.5 }
+  //   );
 
-    itemRefs?.forEach((element) => {
-      observer.observe(element);
-    });
+  //   itemRefs?.forEach((element) => {
+  //     observer.observe(element);
+  //   });
 
-    return () => observer.disconnect();
-  }, [itemRefs]);
+  //   return () => observer.disconnect();
+  // }, [itemRefs]);
 
   // currentTimeMs 변경에 따른 스크롤 처리
   useEffect(() => {
-    if (!autoScroll || isManualScrolling) return;
+    // 수동 스크롤 중이거나 자동 스크롤이 비활성화된 경우 무시
+    if (!autoScroll || isManualScrolling) {
+      return;
+    }
 
     const currentItems = getCurrentItems;
     if (currentItems.length > 0) {
       const newTargetGroups = currentItems.map(group => group.id);
       
+      // 현재 보이는 그룹이 새로운 타겟 그룹에 포함되어 있다면 스크롤하지 않음
       if (currentVisibleGroup && newTargetGroups.includes(currentVisibleGroup)) {
         return;
       }
-      
+      // console.debug(`setTargetGroups: ${newTargetGroups}, autoscroll : ${autoScroll}, isManualScrolling: ${isManualScrolling}`);
       setTargetGroups(newTargetGroups);
     }
   }, [currentTimeMs, autoScroll, getCurrentItems, currentVisibleGroup, isManualScrolling]);
@@ -103,7 +155,7 @@ export function SummaryList({
     if (targetGroups.length > 0 && itemRefs) {
       const targetElement = getItemRef(targetGroups[0].toString());
       if (targetElement) {
-        console.debug(`setScrollKey by targetGroups[0]: ${targetGroups[0]}`);
+        // console.debug(`setScrollKey by targetGroups[0]: ${targetGroups[0]}`);
         setScrollKey(targetGroups[0]);
       }
     }
@@ -121,7 +173,12 @@ export function SummaryList({
   }, [scrollKey]);
 
   useEffect(() => {
-    console.debug(`summary-list: ${activeItem?.type}, ${activeItem?.id}, ${activeItem?.time}`)
+    console.debug(`activeItem changed : summary-list- ${activeItem?.type}, ${activeItem?.id}, ${activeItem?.time}`);
+    if( activeItem?.type === 'summary' && activeItem?.id != null){
+      setTimeout(() => {
+        setActiveItem({type:null, id:null, time:null});
+      }, 2000);
+    }
   }, [activeItem])
  
   const handleShortcutClick = (group: SummaryGroup, summary: SummaryItem, e: React.MouseEvent) => {
@@ -136,6 +193,7 @@ export function SummaryList({
     summaryGroups.reduce((acc, group) => acc + group.items.length, 0)
   , [summaryGroups]);
 
+  ///현재 재생 항목으로 스크롤 (재생시간으로 결정)
   const scrollToCurrentItem = (_e?: React.MouseEvent<HTMLButtonElement>) => {
     const currentItems = getCurrentItems;
     if (currentItems.length > 0) {
@@ -153,6 +211,13 @@ export function SummaryList({
       setIsManualScrolling(false);
     }
   }, [currentTimeMs, targetTime]);
+
+  useEffect(() => {
+    if (pendingUpdate) {
+      onTimeSelect(pendingUpdate.time, 'summary');
+      setPendingUpdate(null);
+    }
+  }, [activeItem, pendingUpdate]);
 
   return (
     <>
@@ -192,13 +257,14 @@ export function SummaryList({
               if (summary) {
                 const newTime = stringToTime(group.startTime);
                 setTargetTime(newTime);
-                setIsManualScrolling(true);
+                setIsManualScrolling(true);  // 수동 스크롤 상태 설정
                 setActiveItem({
                   type: 'summary',
                   id: summary.id,
                   time: null
                 });
-                onTimeSelect(newTime, 'summary');
+                setPendingUpdate({summaryId: summary.id, time: newTime});
+                setScrollKey(group.id);  // scrollKey를 통한 스크롤 처리
               }
             }}
           >
@@ -213,28 +279,13 @@ export function SummaryList({
             </div>
             <div className="space-y-1">
               {group.items.map((summary) => (
-                <div
+                <SummaryItemComponent
                   key={summary.id}
-                  
-                  className={
-                    cn("flex gap-2 p-2 rounded transition-all duration-300 hover:bg-muted/50 items-start",
-                    activeItem?.type === 'summary' && activeItem.id === summary.id ? "highlight" : "",
-                  )}
-                >
-                  <span className="text-muted-foreground mt-1">•</span>
-                  <div className="flex-1 flex items-center gap-2">
-                    <ReactMarkdown className="text-foreground inline flex-1">
-                      {summary.content}
-                    </ReactMarkdown>
-                    <button
-                      onClick={(e) => handleShortcutClick(group, summary, e)}
-                      className="text-primary hover:text-primary/80 transition-colors"
-                      title={`바로가기 #${summary.shortcut}`}
-                    >
-                      <Link className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                  summary={summary}
+                  activeItem={activeItem}
+                  group={group}
+                  handleShortcutClick={handleShortcutClick}
+                />
               ))}
             </div>
           </div>
