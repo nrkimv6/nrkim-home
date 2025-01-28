@@ -20,7 +20,10 @@ export function SlideList({
   const { activeItem } = useSync();
   const { setItemRef, getItemRef } = useItemsRefSync('slide');
   const [isManualScrolling, setIsManualScrolling] = useState(false);
-  const [offsetMs, setOffsetMs] = useState(1000); // 기본값 1초
+  const [offsetMs, setOffsetMs] = useState(() => {
+    const savedOffset = localStorage.getItem('slideOffsetMs');
+    return savedOffset ? parseInt(savedOffset) : 1000;
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // 슬라이드를 그룹으로 구성
@@ -104,7 +107,9 @@ export function SlideList({
   const handleOffsetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value)) {
-      setOffsetMs(value * 1000); // 초 단위 입력을 밀리초로 변환
+      const newOffsetMs = value * 1000;
+      setOffsetMs(newOffsetMs);
+      localStorage.setItem('slideOffsetMs', newOffsetMs.toString());
     }
   };
 
