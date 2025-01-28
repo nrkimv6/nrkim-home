@@ -3,7 +3,7 @@ import { ScrollTrigger } from './types';
 import { debug } from "@/lib/utils"
 
 export interface TimeState {
-    currentTimeMs: number;
+    currentTime: number;
     pendingTimeMs: number | null;
     disableCount: number;
 }
@@ -38,40 +38,42 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     });
     const [pendingScroll, setPendingScroll] = useState<SyncContextType['pendingScroll']>(null);
     const [timeState, setTimeState] = useState<TimeState>({
-        currentTimeMs: 0,
+        currentTime: 0,
         pendingTimeMs: null,
         disableCount: 0,
     });
 
     const setCurrentTime = useCallback((time: number) => {
         if (timeState.disableCount === 0) {
-            setTimeState(prev => ({ ...prev, currentTimeMs: time }));
+            setTimeState(prev => ({ ...prev, currentTime: time }));
+            debug(`setCurrentTime: ${time}`);
         }
+        debug(`setCurrentTime: ${time}`);
     }, [timeState.disableCount]);
 
     const seekTo = useCallback((time: number) => {
-        // debug(`seekTo: ${time}, disableCount: ${timeState.disableCount}`);
+        debug(`seekTo: ${time}, disableCount: ${timeState.disableCount}`);
         setTimeState(prev => ({
             ...prev,
-            currentTimeMs: prev.disableCount === 0 ? time : prev.currentTimeMs,
+            currentTime: prev.disableCount === 0 ? time : prev.currentTime,
             pendingTimeMs: prev.disableCount !== 0 ? time : null
         }));
     }, []);
 
     const enableTimeUpdate = useCallback(() => {
-        debug(`enableTimeUpdate: ${timeState.disableCount}`);
+        debug(`enableTimeUpdate: ${timeState.disableCount} pendingTimeMs: ${timeState.pendingTimeMs}, currentTimeMs: ${timeState.currentTime}`);
         setTimeState(prev => ({
             ...prev,
             disableCount: Math.max(0, prev.disableCount - 1),
-            currentTimeMs: prev.disableCount === 1 && prev.pendingTimeMs !== null 
+            currentTime: prev.disableCount === 1 && prev.pendingTimeMs !== null 
                 ? prev.pendingTimeMs 
-                : prev.currentTimeMs,
+                : prev.currentTime,
             pendingTimeMs: prev.disableCount === 1 ? null : prev.pendingTimeMs
         }));
     }, []);
 
     const disableTimeUpdate = useCallback(() => {
-        debug(`disableTimeUpdate: ${timeState.disableCount}`);
+        debug(`disableTimeUpdate: ${timeState.disableCount} pendingTimeMs: ${timeState.pendingTimeMs}, currentTimeMs: ${timeState.currentTime}`);
         setTimeState(prev => ({
             ...prev,
             disableCount: prev.disableCount + 1

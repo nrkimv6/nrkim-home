@@ -18,7 +18,7 @@ export function VideoPlayer({ videoId, onReady, onStateChange, onTimeUpdate, onP
         const currentTime = playerRef.current.getCurrentTime() * 1000
         onTimeUpdate(currentTime)
       }
-    }, 100)
+    }, 500)
   }
 
   const stopTimeSync = () => {

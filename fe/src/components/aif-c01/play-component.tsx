@@ -7,12 +7,13 @@ import { VideoPlayer } from "./video-player"
 import { SubtitleList } from "./subtitle-list"
 import { SummaryList } from "./summary-list"
 import { useItemsRefSync, useSync } from "./sync-context"
-import { SubtitleGroup, SummaryGroup, Video, ScrollTrigger, TimestampItem, SlideItem, SlideRawItem } from "./types"
+import { SubtitleGroup, SummaryGroup, Video, ScrollTrigger, TimestampItem, SlideItem, SlideRawItem, SummaryRawGroup, SubtitleRawItem, TimestampRawItem } from "./types"
 import React from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TimestampList } from "./timestamp-list"
 import { SlideList } from "./slide-list"
 import { debug, getSubtitle, stringToTime, getSummaryGroup } from "@/lib/utils"
+import { loadSlides, loadSubtitles, loadSummaries, loadTimestamps } from "@/components/aif-c01/load"
 
 interface CurrentGroupState {
   current?: SummaryGroup;
@@ -39,7 +40,7 @@ export function PlayComponent() {
 
   const { activeItem, setActiveItem, setPendingScroll, pendingScroll, timeState, setCurrentTime, seekTo, disableTimeUpdate, enableTimeUpdate } = useSync();
   const [activeBottomTab, setActiveBottomTab] = useState("slide");
-  const currentTimeMs = timeState.currentTimeMs * 1000;
+  const currentTimeMs = timeState.currentTime * 1000;
   const videos: Video[] = [
     {
       id: 1,
@@ -70,109 +71,64 @@ export function PlayComponent() {
   const totalDurationMs = videos.reduce((acc, video) => acc + video.durationMs, 0)
 
   useEffect(() => {
-    const loadSubtitles = async () => {
-      try {
-        const response = await fetch('/data/subtitles.json');
-        const data = await response.json();
-        setSubtitleGroups(data);
-      } catch (error) {
-        console.error('자막을 불러오는데 실패했습니다:', error);
-      }
-    };
-
-    const loadSummaries = async () => {
-      try {
-        const response = await fetch('/data/summaries.json');
-        const data = await response.json();
-        setSummaryGroups(data);
-      } catch (error) {
-        console.error('요약을 불러오는데 실패했습니다:', error);
-      }
-    };
-
-    const loadTimestamps = async () => {
-      try {
-        const response = await fetch('/data/timestamps.json');
-        const data = await response.json();
-        setTimeStamps(data?.images);
-      } catch (error) {
-        console.error('타임스탬프를 불러오는데 실패했습니다:', error);
-      }
-    };
-
-    const loadSlides = async () => {
-      try {
-        const response = await fetch('/data/slides.json');
-        const data = await response.json();
-        // 각 슬라이드에 id 추가
-        const slidesWithId = data.map((slide: SlideRawItem, index: number) => ({
-          ...slide,
-          timestamp: slide.time,
-          title: slide.subtitle,
-          id: index + 1  // 1부터 시작하는 id 부여
-        }));
-        setSlides(slidesWithId);
-      } catch (error) {
-        console.error('슬라이드를 불러오는데 실패했습니다:', error);
-      }
-    };
-
     if (subtitleGroups.length === 0) {
-      loadSubtitles();
+      (async () => setSubtitleGroups(await loadSubtitles()))();
     }
     if (summaryGroups.length === 0) {
-      loadSummaries();
+      (async () => setSummaryGroups(await loadSummaries()))();
     }
     if (timestamps.length === 0) {
-      loadTimestamps();
+      (async () => setTimeStamps(await loadTimestamps()))();
     }
     if (slides.length === 0) {
-      loadSlides();
+      (async () => setSlides(await loadSlides()))();
     }
   }, []);
 
   const handlePlayerStateChange = (event: YT.OnStateChangeEvent) => {
-    if (event.data === YT.PlayerState.PLAYING) {
-      startTimeSync()
-    } else {
-      stopTimeSync()
-    }
+  //   if (event.data === YT.PlayerState.PLAYING) {
+  //     startTimeSync()
+  //   } else {
+  //     stopTimeSync()
+  //   }
   }
 
-  const timeUpdateInterval = useRef<NodeJS.Timeout | null>(null)
+  // const timeUpdateInterval = useRef<NodeJS.Timeout | null>(null)
 
-  const startTimeSync = () => {
-    timeUpdateInterval.current = setInterval(() => {
-      if (playerRef.current) {
-        const currentTime = playerRef.current.getCurrentTime()
-        setCurrentTime(currentTime);
-      }
-    }, 500)  // 500ms로 변경
-  }
+  // const startTimeSync = () => {
+  //   timeUpdateInterval.current = setInterval(() => {
+  //     if (playerRef.current) {
+  //       const currentTime = playerRef.current.getCurrentTime()
+  //       debug(`startTimeSync: ${currentTime}`)
+  //       setCurrentTime(currentTime);
+  //     }
+  //   }, 500)  // 500ms로 변경
+  // }
 
-  const stopTimeSync = () => {
-    if (timeUpdateInterval.current) {
-      clearInterval(timeUpdateInterval.current)
-    }
-  }
+  // const stopTimeSync = () => {
+  //   if (timeUpdateInterval.current) {
+  //     clearInterval(timeUpdateInterval.current)
+  //   }
+  // }
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const percent = (e.clientX - rect.left) / rect.width
     const newTimeMs = percent * totalDurationMs
 
-    seekTo(newTimeMs)
+    seekTo(newTimeMs/1000)
+    // debug(`seekTo handleProgressClick: ${newTimeMs/1000}, true`);
     playerRef.current?.seekTo(newTimeMs / 1000, true)
   }
 
-  const getSubTitleItem = (sourceIndex: number, sequence: number) => {
+  const getSubtitleItem = (sourceIndex: number, sequence: number) => {
     return getSubtitle(subtitleGroups, sourceIndex, sequence);
   }
 
   const getSummaryTime = (sourceIndex: number, sequence: number) => {
-    const subtitleItem = getSubTitleItem(sourceIndex, sequence);
+    const subtitleItem = getSubtitleItem(sourceIndex, sequence);
     if (subtitleItem) {
-      return stringToTime(subtitleItem.startTime);
+      return subtitleItem.startTimeValue;
     }
     return null;
   }
@@ -181,42 +137,44 @@ export function PlayComponent() {
     sourceIndex?: number;
     sequence?: number;
   }) => {
-    // console.log(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
+    // debug(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
 
     disableTimeUpdate();  // 시간 업데이트 비활성화
 
     if (type === 'summary' && options?.sequence) {
-      const subTitle = getSubTitleItem(options.sourceIndex || 0, options.sequence);
+      const subtitle = getSubtitleItem(options.sourceIndex || 0, options.sequence);
 
-      if (subTitle) {
-        const summaryTime = stringToTime(subTitle.startTime);
+      if (subtitle) {
+        const summaryTime = subtitle.startTimeValue;
 
         if (activeBottomTab !== 'subtitle') {
           React.startTransition(() => {
             setPendingScroll({
-              targetId: subTitle.id,
+              targetId: subtitle.id,
               trigger: ScrollTrigger.SHORTCUT
             });
 
             setActiveItem({
               type,
-              id: subTitle.id,
+              id: subtitle.id,
               time: summaryTime,
               trigger: ScrollTrigger.SHORTCUT
             });
 
             setActiveBottomTab('subtitle');
-
+            // debug(`seekTo onTimeSelect-sumary: ${summaryTime/1000}, true`);
             playerRef.current?.seekTo(summaryTime / 1000, true);
             // setCurrentTime(summaryTime);  // setCurrentTimeMs 대신 setCurrentTime 사용
-            seekTo(summaryTime);
+            seekTo(summaryTime/1000);
           });
         }
       }
     } else if (time) {
+
+      // debug(`seekTo onTimeSelect-sumary: ${time/1000}, true`);
       playerRef.current?.seekTo(time / 1000, true);
       // setCurrentTime(time);  // setCurrentTimeMs 대신 setCurrentTime 사용
-      seekTo(time);
+      seekTo(time/1000);
 
       if (activeItem?.type === 'summary' && activeItem?.id != null) {
         //skip to setActionItem (itself)
@@ -239,8 +197,8 @@ export function PlayComponent() {
   const setSubtitleByCurrentTime = () => {
     const subTitle = subtitleGroups
       .flatMap(group => group.items)
-      .find(item => currentTimeMs >= stringToTime(item.startTime) &&
-        currentTimeMs < stringToTime(item.endTime)
+      .find(group => currentTimeMs >= group.startTimeValue &&
+        currentTimeMs < group.endTimeValue
       )
 
     if (subTitle) {
@@ -261,8 +219,8 @@ export function PlayComponent() {
 
   const setSummaryByCurrentTime = () => {
     const summary = summaryGroups.find(group =>
-      currentTimeMs >= stringToTime(group.startTime) &&
-      currentTimeMs < stringToTime(group.endTime)
+      currentTimeMs >= group.startTimeValue&&
+      currentTimeMs < group.endTimeValue
     );
 
     if (summary) {
@@ -290,7 +248,7 @@ export function PlayComponent() {
           id: firstItem.id,
           time: currentTimeMs
         });
-        debug('Set active summary from currentGroup:', firstItem.id);
+        // debug('Set active summary from currentGroup:', firstItem.id);
         return true;
       }
     }
@@ -323,18 +281,18 @@ export function PlayComponent() {
       if (group) {
         return { current: group };
       }
-      debug(`activeItem: ${JSON.stringify(activeItem)}, currentGroup: ${JSON.stringify(group)}`);
+      // debug(`activeItem: ${JSON.stringify(activeItem)}, currentGroup: ${JSON.stringify(group)}`);
     }
 
     // 현재 시간에 해당하는 summary 찾기
     const sortedGroups = [...summaryGroups].sort(
-      (a, b) => stringToTime(a.startTime) - stringToTime(b.startTime)
+      (a, b) => a.startTimeValue - b.startTimeValue
     );
 
 
     const currentIdx = sortedGroups.findIndex(group =>
-      currentTimeMs >= stringToTime(group.startTime) &&
-      currentTimeMs < stringToTime(group.endTime)
+      currentTimeMs >= group.startTimeValue &&
+      currentTimeMs < group.endTimeValue
     );
     // debug(`currentIdx: ${currentIdx}, currentTimeMs: ${currentTimeMs}, currentGroup: ${JSON.stringify(sortedGroups[currentIdx]?.title)}`);
 
@@ -346,7 +304,7 @@ export function PlayComponent() {
 
     // 현재 시간이 속한 그룹이 없는 경우, 전후 그룹 찾기
     const nextIdx = sortedGroups.findIndex(group =>
-      currentTimeMs < stringToTime(group.startTime)
+      currentTimeMs < group.startTimeValue
     );
 
     if (nextIdx === 0) {
@@ -391,12 +349,15 @@ export function PlayComponent() {
   // 시간 이동이 필요한 경우
   const handleTimeSelect = (time: number) => {
     disableTimeUpdate();  // 일시적으로 자동 시간 업데이트 비활성화
+
+    // debug(`seekTo handleTimeSelect: ${time/1000}, true`);
     playerRef.current?.seekTo(time / 1000, true);  // 실제 비디오 시간 변경
     setTimeout(enableTimeUpdate, 100);  // 시간 이동이 완료된 후 다시 활성화
   };
 
   // 비디오 재생 중 시간 업데이트
   const handleTimeUpdate = (time: number) => {
+    // debug(`video- handleTimeUpdate: ${time}, true`);
     // debug(`handleTimeUpdate: ${time}`);
     // setCurrentTime(time);
   };
@@ -416,30 +377,36 @@ export function PlayComponent() {
 
   // 디바운스된 시간 상태 추가
   const debouncedTimeMs = useMemo(() => {
+    // debug(`debouncedTimeMs: ${Math.floor(currentTimeMs / 500) * 500}, currentTimeMs: ${currentTimeMs},  currentTime: ${timeState.currentTime}`)
     return Math.floor(currentTimeMs / 500) * 500;  // 500ms 단위로 반올림
   }, [currentTimeMs]);
 
   // currentSlide 계산에 debouncedTimeMs 사용
   const currentSlide = useMemo(() => {
     const sortedSlides = [...slides].sort((a, b) => 
-      stringToTime(a.timestamp) - stringToTime(b.timestamp)
+      a.timeValue - b.timeValue
     );
     
     const currentIndex = sortedSlides.findIndex((slide, index) => {
-      const currentTime = stringToTime(slide.timestamp);
+      const currentTime = slide.timeValue;
       const nextTime = index < sortedSlides.length - 1 
-        ? stringToTime(sortedSlides[index + 1].timestamp)
-        : Infinity;
-      
-      return debouncedTimeMs >= currentTime && debouncedTimeMs < nextTime;
+        ? sortedSlides[index + 1].timeValue
+        : -1
+
+        // debug(`currentTime: ${currentTime}`)
+        // debug(`debouncedTimeMs: ${debouncedTimeMs}, currentTime: ${currentTime}, nextTime: ${nextTime} slide"${slide.title}`)
+      return debouncedTimeMs+1500 >= currentTime && debouncedTimeMs+1500 < nextTime;
     });
 
+    debug(`currentIndex: ${currentIndex}, debouncedTimeMs:${debouncedTimeMs}`)
     return currentIndex !== -1 ? sortedSlides[currentIndex] : null;
   }, [debouncedTimeMs, slides]);
 
   // 현재 슬라이드 title 업데이트
   useEffect(() => {
-    setCurrentSlideTitle(currentSlide?.title || null);
+    if(currentSlide){
+      setCurrentSlideTitle(currentSlide?.title || null);
+    }
   }, [currentSlide]);
 
   const setSummaryUpdate = (flag: number, groupId: number) => {
@@ -448,7 +415,7 @@ export function PlayComponent() {
     }
     else {
       const group = getSummaryGroup(summaryGroups, groupId)
-      onTimeSelect(stringToTime(group?.startTime || "00:00:00.000"), 'all');
+      onTimeSelect(group?.startTimeValue || null, 'all');
     }
   }
 
@@ -489,7 +456,8 @@ export function PlayComponent() {
                     src={videos[currentVideoIndex].audio}
                     onTimeUpdate={(e) => {
                       const target = e.target as HTMLAudioElement
-                      setCurrentTime(target.currentTime * 1000)
+                      // debug(`onAudioUpdate: ${target.currentTime * 1000}`);
+                      setCurrentTime(target.currentTime);
                     }}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
@@ -581,7 +549,7 @@ export function PlayComponent() {
                 onValueChange={(value) => {
                   const slide = slides.find(s => s.id.toString() === value);
                   if (slide) {
-                    onTimeSelect(stringToTime(slide.timestamp), 'slide');
+                    onTimeSelect(slide.timeValue, 'slide');
                   }
                 }}
               >

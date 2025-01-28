@@ -10,12 +10,21 @@ export interface Video {
   audio: string | null
 }
 
+export interface SubtitleRawItem {
+  id: number;
+  sequence: number;
+  startTime: string;
+  endTime: string;
+  text: string;
+}
 export interface SubtitleItem {
   id: number;
   sequence: number;
   startTime: string;
   endTime: string;
   text: string;
+  startTimeValue: number
+  endTimeValue: number
 }
 
 export interface SubtitleGroup {
@@ -31,7 +40,7 @@ export interface SummaryItem {
   shortcut: number
 }
 
-export interface SummaryGroup {
+export interface SummaryRawGroup {
   id: number
   title: string
   startTime: string
@@ -39,10 +48,25 @@ export interface SummaryGroup {
   items: SummaryItem[]
   sourceIndex: number
 }
+export interface SummaryGroup {
+  id: number
+  title: string
+  startTime: string
+  endTime: string
+  startTimeValue: number
+  endTimeValue: number
+  items: SummaryItem[]
+  sourceIndex: number
+}
 
+export interface TimestampRawItem {
+  id: number;
+  time: string;
+}
 export interface TimestampItem {
   id: number;
   time: string;
+  timeValue: number;
 }
 
 export interface SlideRawItem {
@@ -55,6 +79,7 @@ export interface SlideRawItem {
 export interface SlideItem {
   id: number;
   timestamp: string;
+  timeValue: number;
   title: string;
   category: string;
   is_example: boolean;

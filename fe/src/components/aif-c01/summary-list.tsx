@@ -70,8 +70,8 @@ export function SummaryList({
   // 현재 시간에 해당하는 요약 그룹들을 찾는 함수
   const getCurrentItems = useMemo(() => {
     return summaryGroups.filter(group => 
-      currentTimeMs >= stringToTime(group.startTime) &&
-      currentTimeMs < stringToTime(group.endTime)
+      currentTimeMs >= group.startTimeValue &&
+      currentTimeMs < group.endTimeValue
     );
   }, [currentTimeMs, summaryGroups]);
 
@@ -224,7 +224,7 @@ export function SummaryList({
   const handleGroupClick = (group: SummaryGroup) => {
     const summary = getSummaryByGroup(summaryGroups, group.id);
     if (summary) {
-      const newTime = stringToTime(group.startTime);
+      const newTime = group.startTimeValue;
       setTargetTime(newTime);
       setIsManualScrolling(true);
       setActiveItem({
@@ -276,8 +276,8 @@ export function SummaryList({
             ref={(el) => setItemRef(`${group.id}`, el)}
             className={cn(
               "space-y-2 rounded-md p-4 transition-all duration-300",
-              currentTimeMs >= stringToTime(group.startTime) &&
-              currentTimeMs < stringToTime(group.endTime)
+              currentTimeMs >= group.startTimeValue &&
+              currentTimeMs < group.endTimeValue
                 ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
             )}
             onClick={() => {

@@ -31,8 +31,8 @@ export function SubtitleList({
     const currentItems: SubtitleItem[] = [];
     subtitleGroups.forEach(group => {
       group.items.forEach(item => {
-        if (currentTimeMs >= stringToTime(item.startTime) &&
-          currentTimeMs < stringToTime(item.endTime)) {
+        if (currentTimeMs >= item.startTimeValue &&
+          currentTimeMs < item.endTimeValue) {
           currentItems.push(item);
         }
       });
@@ -208,8 +208,8 @@ export function SubtitleList({
             className={cn(
               "space-y-2 rounded-md p-4 transition-all duration-300",
               group.items.some((item) =>
-                currentTimeMs >= stringToTime(item.startTime) &&
-                currentTimeMs < stringToTime(item.endTime)
+                currentTimeMs >= item.startTimeValue &&
+                currentTimeMs < item.endTimeValue
               ) ? "bg-secondary/20 border-l-4 border-secondary shadow-sm" : "bg-muted border-l-4 border-transparent"
             )}
           >
@@ -225,12 +225,12 @@ export function SubtitleList({
                   className={cn(
                     "flex gap-4 p-2 rounded transition-all duration-300 hover:bg-muted/50 cursor-pointer",
                     activeItem?.type === 'subtitle' && activeItem.id === subtitle.id ? "highlight" : "",
-                    currentTimeMs >= stringToTime(subtitle.startTime) &&
-                      currentTimeMs < stringToTime(subtitle.endTime)
+                    currentTimeMs >= subtitle.startTimeValue &&
+                      currentTimeMs < subtitle.endTimeValue
                       ? "bg-primary/10 border-l-2 border-primary font-medium scale-[1.02]"
                       : ""
                   )}
-                  onClick={() => onTimeSelect(stringToTime(subtitle.startTime), 'subtitle', {
+                  onClick={() => onTimeSelect(subtitle.startTimeValue, 'subtitle', {
                     sourceIndex: group.sourceIndex,
                     sequence: subtitle.sequence
                   })}

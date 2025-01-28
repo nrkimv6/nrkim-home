@@ -53,8 +53,8 @@ export function SlideList({
   const getCurrentItem = useMemo(() => {
     let currentItem = null;
     for (let i = 0; i < slides.length; i++) {
-      const currentTime = stringToTime(slides[i].timestamp);
-      const nextTime = i < slides.length - 1 ? stringToTime(slides[i + 1].timestamp) : Infinity;
+      const currentTime = slides[i].timeValue;
+      const nextTime = i < slides.length - 1 ? slides[i + 1].timeValue : Infinity;
       
       if (currentTimeMs >= currentTime && currentTimeMs < nextTime) {
         currentItem = slides[i];
@@ -96,7 +96,7 @@ export function SlideList({
 
   const handleSlideClick = (item: SlideItem) => {
     setIsManualScrolling(true);
-    const targetTime = Math.max(0, stringToTime(item.timestamp) - offsetMs);
+    const targetTime = Math.max(0, item.timeValue - offsetMs);
     onTimeSelect(targetTime, 'slide');
     setTimeout(() => setIsManualScrolling(false), 1000);
   };
@@ -114,14 +114,14 @@ export function SlideList({
     
     // 시간순으로 정렬된 전체 슬라이드 배열 생성
     const sortedSlides = [...slides].sort((a, b) => 
-      stringToTime(a.timestamp) - stringToTime(b.timestamp)
+      a.timeValue - b.timeValue
     );
 
     // 각 슬라이드의 duration 계산
     sortedSlides.forEach((slide, index) => {
       if (index < sortedSlides.length - 1) {
-        const currentTime = stringToTime(slide.timestamp);
-        const nextTime = stringToTime(sortedSlides[index + 1].timestamp);
+        const currentTime = slide.timeValue;
+        const nextTime = sortedSlides[index + 1].timeValue;
         durations.set(slide.id, Math.round((nextTime - currentTime) / 1000));
       }
     });

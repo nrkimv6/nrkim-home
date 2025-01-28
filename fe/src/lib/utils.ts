@@ -20,6 +20,9 @@ export const stringToTime = (timeStr: string): number => {
   // debug(`timepart: ${timepart}, millisecpart: ${millisecpart}`);
   const [hours, minutes, seconds] = timepart.split(":").map(Number);
   const milliseconds = Number(millisecpart.padEnd(3, "0")); // 밀리초가 3자리가 되도록 패딩
+
+  // debug(`stringToTime: ${timeStr}, hours: ${hours}, minutes: ${minutes}, seconds: ${seconds}, milliseconds: ${milliseconds}`);
+  // debug(`result: ${ (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds}`);
   
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }

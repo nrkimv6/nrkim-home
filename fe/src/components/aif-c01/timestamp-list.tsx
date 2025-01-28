@@ -21,8 +21,8 @@ export function TimestampList({
   const getCurrentItem = useMemo(() => {
     let currentItem = null;
     for (let i = 0; i < timestamps.length; i++) {
-      const currentTime = stringToTime(timestamps[i].time);
-      const nextTime = i < timestamps.length - 1 ? stringToTime(timestamps[i + 1].time) : Infinity;
+      const currentTime = timestamps[i].timeValue;
+      const nextTime = i < timestamps.length - 1 ? timestamps[i + 1].timeValue : Infinity;
       
       if (currentTimeMs >= currentTime && currentTimeMs < nextTime) {
         currentItem = timestamps[i];
@@ -58,7 +58,7 @@ export function TimestampList({
 
   const handleTimestampClick = (item: TimestampItem) => {
     setIsManualScrolling(true);
-    onTimeSelect(stringToTime(item.time), 'timestamp');
+    onTimeSelect(item.timeValue, 'timestamp');
     setTimeout(() => setIsManualScrolling(false), 1000);
   };
 
