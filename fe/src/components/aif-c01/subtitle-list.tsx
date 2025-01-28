@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils"
 import { Switch } from "@/components/ui/switch"
 import { useItemsRefSync, useSync } from "./sync-context";
-import { getSubtitle, getTargetkeyById, stringToTime, SubtitleGroup, SubtitleItem, SubtitleListProps } from "./types";
+import { SubtitleGroup, SubtitleItem, SubtitleListProps } from "./types";
 import { useEffect, useRef, useMemo, useState, forwardRef, ForwardedRef } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
 import { ScrollTrigger } from "./types"
+import { debug, getSubtitle, getTargetkeyById, stringToTime, getSummary, getSummaryByGroup } from "@/lib/utils"
 
 export function SubtitleList({
   subtitleGroups,
@@ -57,7 +58,7 @@ export function SubtitleList({
       const targetElement = getItemRef(targetKey);
       if (targetElement) {
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        console.debug(`targetKey: ${targetKey}, id: ${memoizedTargetItem?.id}, trigger: ${memoizedTargetItem.trigger}, currentTimeMs: ${currentTimeMs}`);
+        debug(`targetKey: ${targetKey}, id: ${memoizedTargetItem?.id}, trigger: ${memoizedTargetItem.trigger}, currentTimeMs: ${currentTimeMs}`);
 
         if (memoizedTargetItem.trigger === ScrollTrigger.AFTER_MOUNT) {
           isInitialScrollCompleteRef.current = true;
@@ -90,7 +91,7 @@ export function SubtitleList({
         g.items.some(item => item.id === firstItem.id)
       );
       if (group) {
-        // console.debug(`Autoscroll - firstItem: ${firstItem.id}`);
+        // debug(`Autoscroll - firstItem: ${firstItem.id}`);
         setTargetItem({
           id: firstItem.id,
           trigger: ScrollTrigger.AUTO_SCROLL
@@ -105,7 +106,7 @@ export function SubtitleList({
   //   if (skipMountScroll) return;
 
   //   if (pendingScroll?.sourceIndex && pendingScroll?.sequence) {
-  //     console.debug(`Mount with scroll - sourceIndex: ${pendingScroll.sourceIndex}, sequence: ${pendingScroll.sequence}`);
+  //     debug(`Mount with scroll - sourceIndex: ${pendingScroll.sourceIndex}, sequence: ${pendingScroll.sequence}`);
 
   //     setTargetKey(`${pendingScroll.sourceIndex}-${pendingScroll.sequence}`,ScrollTrigger.AFTER_MOUNT);
   //   } else {
@@ -117,7 +118,7 @@ export function SubtitleList({
   //         g.items.some(item => item.sequence === firstItem.sequence)
   //       );
   //       if (group) {
-  //         console.debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
+  //         debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
   //         setTargetItem({ id: firstItem.id, trigger: ScrollTrigger.AFTER_MOUNT });
   //       }
   //     }
@@ -131,7 +132,7 @@ export function SubtitleList({
   
       if (pendingScroll?.targetId) {
 
-        console.debug(`Mount with scroll - targetId: ${pendingScroll.targetId}`);
+        debug(`Mount with scroll - targetId: ${pendingScroll.targetId}`);
         setTargetItem({ id: pendingScroll?.targetId, trigger: ScrollTrigger.AFTER_MOUNT });
   
         // setTargetKey(`${pendingScroll.sourceIndex}-${pendingScroll.sequence}`,ScrollTrigger.AFTER_MOUNT);
@@ -144,7 +145,7 @@ export function SubtitleList({
             g.items.some(item => item.sequence === firstItem.sequence)
           );
           if (group) {
-            console.debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
+            debug(`Mount with scroll and no pending- firstItem: ${firstItem.id}`);
             setTargetItem({ id: firstItem.id, trigger: ScrollTrigger.AFTER_MOUNT });
           }
         }
@@ -168,7 +169,7 @@ export function SubtitleList({
       if (group) {
         const key = `${group.sourceIndex}-${firstItem.sequence}`;
         // setTargetKey(key, trigger );
-        console.debug(`List selection - firstItem: ${firstItem.id}`);
+        debug(`List selection - firstItem: ${firstItem.id}`);
         setTargetItem({ id: firstItem.id, trigger });
       }
     }

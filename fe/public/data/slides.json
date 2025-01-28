@@ -1,0 +1,1549 @@
+[
+    {
+      "filename": "slide_0014_00-01-08-375.png",
+      "index": 14,
+      "time": "00:01:08.375",
+      "subtitle": "Introduction",
+      "category": "Introduction",
+      "is_example": false
+    },
+    {
+      "filename": "slide_0030_00-12-15-416.png",
+      "index": 30,
+      "time": "00:12:15.416",
+      "subtitle": "Exam Guide Breakdown",
+      "category": "Introduction",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0114_00-17-52-833.png",
+      "index": 114,
+      "time": "00:17:52.833",
+      "subtitle": "What is AI?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0116_00-20-36-833.png",
+      "index": 116,
+      "time": "00:20:36.833",
+      "subtitle": "Al vs GenAl",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0119_00-24-58-417.png",
+      "index": 119,
+      "time": "00:24:58.417",
+      "subtitle": "Jupyter Notebooks",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0125_00-27-32-083.png",
+      "index": 125,
+      "time": "00:27:32.083",
+      "subtitle": "What is NLP?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0128_00-31-42-542.png",
+      "index": 128,
+      "time": "00:31:42.542",
+      "subtitle": "Regression",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0130_00-33-08-917.png",
+      "index": 130,
+      "time": "00:33:08.917",
+      "subtitle": "Classification",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0132_00-34-28-417.png",
+      "index": 132,
+      "time": "00:34:28.417",
+      "subtitle": "Clustering",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0134_00-35-24-500.png",
+      "index": 134,
+      "time": "00:35:24.500",
+      "subtitle": "Types of Machine Learning",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0136_00-38-09-959.png",
+      "index": 136,
+      "time": "00:38:09.959",
+      "subtitle": "Divisions of Machine Learning",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0138_00-40-17-917.png",
+      "index": 138,
+      "time": "00:40:17.917",
+      "subtitle": "Classical Machine Learning",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0140_00-42-41-250.png",
+      "index": 140,
+      "time": "00:42:41.250",
+      "subtitle": "Supervised vs Unsupervised Learning",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0142_00-44-04-334.png",
+      "index": 142,
+      "time": "00:44:04.334",
+      "subtitle": "Supervised vs Unsupervised vs Reinforcement",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0144_00-45-21-959.png",
+      "index": 144,
+      "time": "00:45:21.959",
+      "subtitle": "Supervised Learning Models",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0146_00-46-40-292.png",
+      "index": 146,
+      "time": "00:46:40.292",
+      "subtitle": "Unsupervised Learning Models",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0148_00-48-18-209.png",
+      "index": 148,
+      "time": "00:48:18.209",
+      "subtitle": "Neural Networks and Deep learning",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0151_00-52-02-667.png",
+      "index": 151,
+      "time": "00:52:02.667",
+      "subtitle": "Introduction to Perceptrons",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0155_00-53-06-001.png",
+      "index": 155,
+      "time": "00:53:06.001",
+      "subtitle": "Basic Perceptron Network",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0157_00-55-40-417.png",
+      "index": 157,
+      "time": "00:55:40.417",
+      "subtitle": "Activation Functions",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0160_00-59-02-084.png",
+      "index": 160,
+      "time": "00:59:02.084",
+      "subtitle": "Linear Activation",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0162_00-59-52-501.png",
+      "index": 162,
+      "time": "00:59:52.501",
+      "subtitle": "Binary Step",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0164_01-00-38-834.png",
+      "index": 164,
+      "time": "01:00:38.834",
+      "subtitle": "Sigmoid Activation",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0166_01-02-07-459.png",
+      "index": 166,
+      "time": "01:02:07.459",
+      "subtitle": "Than Activation",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0168_01-03-03-626.png",
+      "index": 168,
+      "time": "01:03:03.626",
+      "subtitle": "ReLU",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0170_01-04-29-959.png",
+      "index": 170,
+      "time": "01:04:29.959",
+      "subtitle": "Leaky ReLU",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0172_01-05-26-584.png",
+      "index": 172,
+      "time": "01:05:26.584",
+      "subtitle": "ELU",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0174_01-06-16-293.png",
+      "index": 174,
+      "time": "01:06:16.293",
+      "subtitle": "Swish Activation",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0176_01-07-01-001.png",
+      "index": 176,
+      "time": "01:07:01.001",
+      "subtitle": "Maxout",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0178_01-07-31-709.png",
+      "index": 178,
+      "time": "01:07:31.709",
+      "subtitle": "SoftMax",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0180_01-08-23-168.png",
+      "index": 180,
+      "time": "01:08:23.168",
+      "subtitle": "What is an ML Model?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0182_01-09-58-793.png",
+      "index": 182,
+      "time": "01:09:58.793",
+      "subtitle": "What is an Algorithm?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0184_01-11-54-709.png",
+      "index": 184,
+      "time": "01:11:54.709",
+      "subtitle": "What is a Feature?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0186_01-12-48-709.png",
+      "index": 186,
+      "time": "01:12:48.709",
+      "subtitle": "What is Inference?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0188_01-13-34-709.png",
+      "index": 188,
+      "time": "01:13:34.709",
+      "subtitle": "What are Parameters and Hyperparameters ?",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0190_01-15-09-168.png",
+      "index": 190,
+      "time": "01:15:09.168",
+      "subtitle": "Responsible Al",
+      "category": "Al and ML Fundamentals",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0217_01-16-51-626.png",
+      "index": 217,
+      "time": "01:16:51.626",
+      "subtitle": "What is Labeling?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0220_01-17-57-085.png",
+      "index": 220,
+      "time": "01:17:57.085",
+      "subtitle": "What is Data Mining?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0222_01-18-40-418.png",
+      "index": 222,
+      "time": "01:18:40.418",
+      "subtitle": "Data Mining Methods",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0224_01-19-37-210.png",
+      "index": 224,
+      "time": "01:19:37.210",
+      "subtitle": "What is Knowledge Mining?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0226_01-21-38-335.png",
+      "index": 226,
+      "time": "01:21:38.335",
+      "subtitle": "What is Data Wrangling?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0228_01-23-13-501.png",
+      "index": 228,
+      "time": "01:23:13.501",
+      "subtitle": "What is Data Modeling?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0231_01-24-34-126.png",
+      "index": 231,
+      "time": "01:24:34.126",
+      "subtitle": "What is Data Analytics?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0234_01-25-18-626.png",
+      "index": 234,
+      "time": "01:25:18.626",
+      "subtitle": "What is a Data Scientist?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0238_01-26-46-626.png",
+      "index": 238,
+      "time": "01:26:46.626",
+      "subtitle": "Data Role Comparsions",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0240_01-27-40-835.png",
+      "index": 240,
+      "time": "01:27:40.835",
+      "subtitle": "Train vs Test vs Validation DataSet",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0242_01-28-36-335.png",
+      "index": 242,
+      "time": "01:28:36.335",
+      "subtitle": "Corpus",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0245_01-30-13-293.png",
+      "index": 245,
+      "time": "01:30:13.293",
+      "subtitle": "What is a Data Type?",
+      "category": "Data and ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0247_01-31-52-752.png",
+      "index": 247,
+      "time": "01:31:52.752",
+      "subtitle": "Al vs GenAl",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0250_01-35-52-210.png",
+      "index": 250,
+      "time": "01:35:52.210",
+      "subtitle": "What is a Foundational Model",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0252_01-37-10-168.png",
+      "index": 252,
+      "time": "01:37:10.168",
+      "subtitle": "What ts a Large Language Model?",
+      "category": "Gen AI Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0254_01-38-54-127.png",
+      "index": 254,
+      "time": "01:38:54.127",
+      "subtitle": "Transformer Architecture",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0256_01-41-54-960.png",
+      "index": 256,
+      "time": "01:41:54.960",
+      "subtitle": "Tokenization",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0259_01-43-53-502.png",
+      "index": 259,
+      "time": "01:43:53.502",
+      "subtitle": "Tokens and Capacity",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0261_01-46-16-127.png",
+      "index": 261,
+      "time": "01:46:16.127",
+      "subtitle": "Embeddings",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0263_01-49-22-627.png",
+      "index": 263,
+      "time": "01:49:22.627",
+      "subtitle": "Positional Encoding",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0266_01-50-48-335.png",
+      "index": 266,
+      "time": "01:50:48.335",
+      "subtitle": "Attention",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0270_01-53-58-169.png",
+      "index": 270,
+      "time": "01:53:58.169",
+      "subtitle": "Fine-Tuning LLMs",
+      "category": "Gen Al Primer",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0273_02-02-26-211.png",
+      "index": 273,
+      "time": "02:02:26.211",
+      "subtitle": "Amazon Bedrock",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0275_02-05-44-169.png",
+      "index": 275,
+      "time": "02:05:44.169",
+      "subtitle": "Amazon Bedrock - Model Catalog",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0277_02-07-30-294.png",
+      "index": 277,
+      "time": "02:07:30.294",
+      "subtitle": "Amazon Bedrock - Deployment Models",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0279_02-11-37-877.png",
+      "index": 279,
+      "time": "02:11:37.877",
+      "subtitle": "Amazon Bedrock - Playgrounds",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_0282_02-13-55-461.png",
+      "index": 282,
+      "time": "02:13:55.461",
+      "subtitle": "Amazon Bedrock Setup",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_0317_02-21-34-878.png",
+      "index": 317,
+      "time": "02:21:34.878",
+      "subtitle": "Turn Off SageMaker Notebook Warning",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_0321_02-22-23-794.png",
+      "index": 321,
+      "time": "02:22:23.794",
+      "subtitle": "Amazon Bedrock Prompt Engineering",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_0831_03-06-24-420.png",
+      "index": 831,
+      "time": "03:06:24.420",
+      "subtitle": "Amazon Bedrock Text Generation",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_1521_04-01-48-880.png",
+      "index": 1521,
+      "time": "04:01:48.880",
+      "subtitle": "Amazon Bedrock - Knowledge Base",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 4
+    },
+    {
+      "filename": "slide_1523_04-05-50-088.png",
+      "index": 1523,
+      "time": "04:05:50.088",
+      "subtitle": "Amazon Bedrock RAG",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_2065_04-47-17-589.png",
+      "index": 2065,
+      "time": "04:47:17.589",
+      "subtitle": "Amazon Bedrock - Agents",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_2067_04-49-51-881.png",
+      "index": 2067,
+      "time": "04:49:51.881",
+      "subtitle": "Amazon Bedrock Agent Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_2568_05-37-08-715.png",
+      "index": 2568,
+      "time": "05:37:08.715",
+      "subtitle": "Amazon Bedrock - Prompt Flow",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_2570_05-39-08-799.png",
+      "index": 2570,
+      "time": "05:39:08.799",
+      "subtitle": "Amazon Bedrock Prompt Flow Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_2660_05-54-18-341.png",
+      "index": 2660,
+      "time": "05:54:18.341",
+      "subtitle": "Amazon Bedrock Cleanup RAG and Agent",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_2702_05-57-03-132.png",
+      "index": 2702,
+      "time": "05:57:03.132",
+      "subtitle": "Amazon Bedrock - Prompt Manager",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_2704_05-58-57-632.png",
+      "index": 2704,
+      "time": "05:58:57.632",
+      "subtitle": "Amazon Bedrock - Custom Models",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_2709_06-02-01-132.png",
+      "index": 2709,
+      "time": "06:02:01.132",
+      "subtitle": "Amazon Bedrock - Custom Models Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3048_06-32-56-175.png",
+      "index": 3048,
+      "time": "06:32:56.175",
+      "subtitle": "Amazon Bedrock Image Generation",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3167_06-42-31-842.png",
+      "index": 3167,
+      "time": "06:42:31.842",
+      "subtitle": "Amazon Bedrock Guardrails",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3169_06-44-50-883.png",
+      "index": 3169,
+      "time": "06:44:50.883",
+      "subtitle": "Amazon Bedrock Guardrails Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 5
+    },
+    {
+      "filename": "slide_3231_06-50-17-217.png",
+      "index": 3231,
+      "time": "06:50:17.217",
+      "subtitle": "Amazon Bedrock Invocation Logging",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3233_06-51-29-259.png",
+      "index": 3233,
+      "time": "06:51:29.259",
+      "subtitle": "Amazon Bedrock Invocation Logging Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3267_06-54-59-800.png",
+      "index": 3267,
+      "time": "06:54:59.800",
+      "subtitle": "Amazon Bedrock Evaluation",
+      "category": "Amazon Bedrock",
+      "is_example": false,
+      "method": 4
+    },
+    {
+      "filename": "slide_3269_06-56-27-717.png",
+      "index": 3269,
+      "time": "06:56:27.717",
+      "subtitle": "Amazon Bedrock Evaluation Follow Along",
+      "category": "Amazon Bedrock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3540_07-16-03-509.png",
+      "index": 3540,
+      "time": "07:16:03.509",
+      "subtitle": "Third-Party Vector Search for GenAl",
+      "category": "Datastore for GenAl",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3542_07-18-32-717.png",
+      "index": 3542,
+      "time": "07:18:32.717",
+      "subtitle": "Pinecone Follow Along",
+      "category": "Datastore for GenAl",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3732_07-33-03-051.png",
+      "index": 3732,
+      "time": "07:33:03.051",
+      "subtitle": "Amazon Aurora and RDS PG Vector for GenAl",
+      "category": "Datastore for GenAl",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3735_07-35-17-843.png",
+      "index": 3735,
+      "time": "07:35:17.843",
+      "subtitle": "PG Vector Follow Along",
+      "category": "Datastore for GenAl",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3821_07-48-56-427.png",
+      "index": 3821,
+      "time": "07:48:56.427",
+      "subtitle": "DynamoDB and DocumentDB for GenAl",
+      "category": "Datastore for GenAl",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3823_07-50-22-927.png",
+      "index": 3823,
+      "time": "07:50:22.927",
+      "subtitle": "Amazon Neptune for GenAl",
+      "category": "Datastore for GenAl",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3825_07-51-20-552.png",
+      "index": 3825,
+      "time": "07:51:20.552",
+      "subtitle": "Amazon OpenSearch for GenAl",
+      "category": "Datastore for GenAl",
+      "is_example": false,
+      "method": 4
+    },
+    {
+      "filename": "slide_3827_07-52-21-593.png",
+      "index": 3827,
+      "time": "07:52:21.593",
+      "subtitle": "AWS PartyRock",
+      "category": "AWS PartyRock",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3830_07-54-28-552.png",
+      "index": 3830,
+      "time": "07:54:28.552",
+      "subtitle": "AWS PartyRock Follow Along",
+      "category": "AWS PartyRock",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_3880_08-08-49-635.png",
+      "index": 3880,
+      "time": "08:08:49.635",
+      "subtitle": "General Machine Learning Workflow",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3882_08-11-59-552.png",
+      "index": 3882,
+      "time": "08:11:59.552",
+      "subtitle": "ML Pipelines",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3884_08-13-26-219.png",
+      "index": 3884,
+      "time": "08:13:26.219",
+      "subtitle": "Data Readiness",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3886_08-15-40-885.png",
+      "index": 3886,
+      "time": "08:15:40.885",
+      "subtitle": "Data Wrangler",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3895_08-18-48-094.png",
+      "index": 3895,
+      "time": "08:18:48.094",
+      "subtitle": "SageMaker Canvas Warning",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3931_08-23-02-802.png",
+      "index": 3931,
+      "time": "08:23:02.802",
+      "subtitle": "SageMaker Canvas",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_3939_08-29-26-011.png",
+      "index": 3939,
+      "time": "08:29:26.011",
+      "subtitle": "SageMaker Canvas Follow Along",
+      "category": "SageMaker",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4001_08-39-39-344.png",
+      "index": 4001,
+      "time": "08:39:39.344",
+      "subtitle": "SageMaker Feature Store",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4014_08-44-17-636.png",
+      "index": 4014,
+      "time": "08:44:17.636",
+      "subtitle": "SageMaker Endpoints",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4016_08-44-56-678.png",
+      "index": 4016,
+      "time": "08:44:56.678",
+      "subtitle": "SageMaker Python SDK",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4032_08-51-12-595.png",
+      "index": 4032,
+      "time": "08:51:12.595",
+      "subtitle": "SageMaker Ground Truth",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4061_08-56-59-636.png",
+      "index": 4061,
+      "time": "08:56:59.636",
+      "subtitle": "SageMaker Automatic Tuning",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4065_08-59-43-095.png",
+      "index": 4065,
+      "time": "08:59:43.095",
+      "subtitle": "SageMaker Inference",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4084_09-06-50-428.png",
+      "index": 4084,
+      "time": "09:06:50.428",
+      "subtitle": "SageMaker Model Monitor",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4086_09-07-25-345.png",
+      "index": 4086,
+      "time": "09:07:25.345",
+      "subtitle": "SageMaker Model Registry",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4088_09-08-12-137.png",
+      "index": 4088,
+      "time": "09:08:12.137",
+      "subtitle": "SageMaker Processing",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4094_09-09-26-470.png",
+      "index": 4094,
+      "time": "09:09:26.470",
+      "subtitle": "SageMaker Pipelines",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4098_09-11-12-262.png",
+      "index": 4098,
+      "time": "09:11:12.262",
+      "subtitle": "SageMaker Clarify",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4105_09-16-10-637.png",
+      "index": 4105,
+      "time": "09:16:10.637",
+      "subtitle": "SageMaker Model Cards",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4107_09-16-36-762.png",
+      "index": 4107,
+      "time": "09:16:36.762",
+      "subtitle": "SageMaker JumpStart",
+      "category": "SageMaker",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4255_09-33-46-387.png",
+      "index": 4255,
+      "time": "09:33:46.387",
+      "subtitle": "SageMaker Studio Labs",
+      "category": "SageMaker",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4353_09-41-03-554.png",
+      "index": 4353,
+      "time": "09:41:03.554",
+      "subtitle": "Amazon A2l",
+      "category": "SageMaker",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4356_09-41-48-637.png",
+      "index": 4356,
+      "time": "09:41:48.637",
+      "subtitle": "What are Metrics?",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4358_09-43-14-554.png",
+      "index": 4358,
+      "time": "09:43:14.554",
+      "subtitle": "Confusion Matrix",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4360_09-46-36-554.png",
+      "index": 4360,
+      "time": "09:46:36.554",
+      "subtitle": "Classification Metrics: Accuracy vs. Precision",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4362_09-48-00-721.png",
+      "index": 4362,
+      "time": "09:48:00.721",
+      "subtitle": "Classification Metrics: Accuracy vs. F1 Score",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4364_09-49-39-387.png",
+      "index": 4364,
+      "time": "09:49:39.387",
+      "subtitle": "Classification Metrics: ROC Curve and AUC",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4367_09-50-43-471.png",
+      "index": 4367,
+      "time": "09:50:43.471",
+      "subtitle": "Ranking Metrics",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4369_09-52-21-638.png",
+      "index": 4369,
+      "time": "09:52:21.638",
+      "subtitle": "Computer Vision Metrics",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4373_09-52-56-138.png",
+      "index": 4373,
+      "time": "09:52:56.138",
+      "subtitle": "NLP Metrics",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4375_09-54-57-888.png",
+      "index": 4375,
+      "time": "09:54:57.888",
+      "subtitle": "NLP Metrics Follow Along",
+      "category": "Evaluations",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4433_10-03-04-679.png",
+      "index": 4433,
+      "time": "10:03:04.679",
+      "subtitle": "Deep Learning Metrics",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4435_10-03-51-346.png",
+      "index": 4435,
+      "time": "10:03:51.346",
+      "subtitle": "Regression Metrics",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4437_10-05-23-763.png",
+      "index": 4437,
+      "time": "10:05:23.763",
+      "subtitle": "Foundation Model Evaluation Library",
+      "category": "Evaluations",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4440_10-06-40-596.png",
+      "index": 4440,
+      "time": "10:06:40.596",
+      "subtitle": "Amazon Q",
+      "category": "Al Dev Tools",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4442_10-08-19-096.png",
+      "index": 4442,
+      "time": "10:08:19.096",
+      "subtitle": "Amazon CodeWhisperer",
+      "category": "Al Dev Tools",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4444_10-09-50-680.png",
+      "index": 4444,
+      "time": "10:09:50.680",
+      "subtitle": "Amazon-Q and CodeWhisperer Lab",
+      "category": "Al Dev Tools",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4502_10-30-16-680.png",
+      "index": 4502,
+      "time": "10:30:16.680",
+      "subtitle": "CodeGuru",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4504_10-31-22-263.png",
+      "index": 4504,
+      "time": "10:31:22.263",
+      "subtitle": "CodeGuru",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4587_10-39-25-430.png",
+      "index": 4587,
+      "time": "10:39:25.430",
+      "subtitle": "Amazon Comprehend",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4591_10-42-19-722.png",
+      "index": 4591,
+      "time": "10:42:19.722",
+      "subtitle": "Amazon Comprehend",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4619_10-47-15-889.png",
+      "index": 4619,
+      "time": "10:47:15.889",
+      "subtitle": "Amazon Forecast",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4621_10-48-25-764.png",
+      "index": 4621,
+      "time": "10:48:25.764",
+      "subtitle": "Amazon Fraud Detection",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4627_10-51-38-972.png",
+      "index": 4627,
+      "time": "10:51:38.972",
+      "subtitle": "Amazon Kendra",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4638_10-55-12-514.png",
+      "index": 4638,
+      "time": "10:55:12.514",
+      "subtitle": "Amazon Kendra",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_4865_11-28-50-181.png",
+      "index": 4865,
+      "time": "11:28:50.181",
+      "subtitle": "Amazon Lex",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4868_11-31-18-890.png",
+      "index": 4868,
+      "time": "11:31:18.890",
+      "subtitle": "Amazon Personalize",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_4876_11-33-47-598.png",
+      "index": 4876,
+      "time": "11:33:47.598",
+      "subtitle": "Amazon Personalize",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 5
+    },
+    {
+      "filename": "slide_5295_12-19-57-099.png",
+      "index": 5295,
+      "time": "12:19:57.099",
+      "subtitle": "Amazon Polly",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5301_12-23-05-183.png",
+      "index": 5301,
+      "time": "12:23:05.183",
+      "subtitle": "Amazon Polly",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5421_12-37-49-516.png",
+      "index": 5421,
+      "time": "12:37:49.516",
+      "subtitle": "Amazon Rekognition",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5426_12-39-47-600.png",
+      "index": 5426,
+      "time": "12:39:47.600",
+      "subtitle": "Amazon Rekognition",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5630_12-58-10-850.png",
+      "index": 5630,
+      "time": "12:58:10.850",
+      "subtitle": "Amazon Textract",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5633_13-00-01-308.png",
+      "index": 5633,
+      "time": "13:00:01.308",
+      "subtitle": "Amazon Textract",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5748_13-11-41-892.png",
+      "index": 5748,
+      "time": "13:11:41.892",
+      "subtitle": "Amazon Translate",
+      "category": "AWS Managed ML",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5751_13-12-20-350.png",
+      "index": 5751,
+      "time": "13:12:20.350",
+      "subtitle": "Amazon Translate",
+      "category": "AWS Managed ML",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5786_13-19-32-642.png",
+      "index": 5786,
+      "time": "13:19:32.642",
+      "subtitle": "ISO Al Standard",
+      "category": "GenAl Security",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5788_13-20-22-475.png",
+      "index": 5788,
+      "time": "13:20:22.475",
+      "subtitle": "ISO Al Standard Follow Along",
+      "category": "GenAl Security",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5813_13-22-07-934.png",
+      "index": 5813,
+      "time": "13:22:07.934",
+      "subtitle": "Algorithmic Accountability Act",
+      "category": "GenAl Security",
+      "is_example": false,
+      "method": 4
+    },
+    {
+      "filename": "slide_5815_13-22-39-976.png",
+      "index": 5815,
+      "time": "13:22:39.976",
+      "subtitle": "Algorithmic Accountability Act Follow Along",
+      "category": "GenAl Security",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5831_13-23-58-517.png",
+      "index": 5831,
+      "time": "13:23:58.517",
+      "subtitle": "Generative Al Security Scoping Matrix",
+      "category": "GenAl Security",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5834_13-24-35-017.png",
+      "index": 5834,
+      "time": "13:24:35.017",
+      "subtitle": "Generative Al Security Scoping Matrix Follow Along",
+      "category": "GenAl Security",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_5870_13-26-49-059.png",
+      "index": 5870,
+      "time": "13:26:49.059",
+      "subtitle": "Prompt Injection",
+      "category": "GenAl Security",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5952_13-35-21-559.png",
+      "index": 5952,
+      "time": "13:35:21.559",
+      "subtitle": "Introduction to Athena",
+      "category": "Athena",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5954_13-37-56-601.png",
+      "index": 5954,
+      "time": "13:37:56.601",
+      "subtitle": "Athena SQL Components",
+      "category": "Athena",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5956_13-40-43-768.png",
+      "index": 5956,
+      "time": "13:40:43.768",
+      "subtitle": "Athena SQL Data Types",
+      "category": "Athena",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5958_13-44-53-059.png",
+      "index": 5958,
+      "time": "13:44:53.059",
+      "subtitle": "Athena SQL SerDe",
+      "category": "Athena",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5962_13-48-12-768.png",
+      "index": 5962,
+      "time": "13:48:12.768",
+      "subtitle": "Athena SQL Table",
+      "category": "Athena",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5966_13-51-17-726.png",
+      "index": 5966,
+      "time": "13:51:17.726",
+      "subtitle": "Introduction to AWS Glue",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5968_13-52-59-143.png",
+      "index": 5968,
+      "time": "13:52:59.143",
+      "subtitle": "AWS Glue Studio",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5972_13-55-17-101.png",
+      "index": 5972,
+      "time": "13:55:17.101",
+      "subtitle": "AWS Glue Jobs",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5974_13-56-26-393.png",
+      "index": 5974,
+      "time": "13:56:26.393",
+      "subtitle": "Glue Data Catalog",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5976_13-58-21-476.png",
+      "index": 5976,
+      "time": "13:58:21.476",
+      "subtitle": "Glue Data Catalog Crawlers",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5978_13-59-24-435.png",
+      "index": 5978,
+      "time": "13:59:24.435",
+      "subtitle": "Glue Data Quality",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5980_14-00-37-851.png",
+      "index": 5980,
+      "time": "14:00:37.851",
+      "subtitle": "Glue Data Brew",
+      "category": "Glue",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_5982_14-01-22-601.png",
+      "index": 5982,
+      "time": "14:01:22.601",
+      "subtitle": "Data Catalog Table and Glue Visual ETL",
+      "category": "Glue",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_6226_14-33-09-269.png",
+      "index": 6226,
+      "time": "14:33:09.269",
+      "subtitle": "OpenSearch Service",
+      "category": "OpenSearch",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_6228_14-35-07-227.png",
+      "index": 6228,
+      "time": "14:35:07.227",
+      "subtitle": "OpenSearch Follow-Along",
+      "category": "OpenSearch",
+      "is_example": true,
+      "method": 3
+    },
+    {
+      "filename": "slide_6389_14-56-15-269.png",
+      "index": 6389,
+      "time": "14:56:15.269",
+      "subtitle": "Introduction to Data Lakes",
+      "category": "Lake Formation",
+      "is_example": false,
+      "method": 3
+    },
+    {
+      "filename": "slide_6392_14-57-21-936.png",
+      "index": 6392,
+      "time": "14:57:21.936",
+      "subtitle": "Lake Formation",
+      "category": "Lake Formation",
+      "is_example": false,
+      "method": 3
+    }
+  ]

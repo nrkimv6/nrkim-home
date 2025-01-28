@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { ScrollTrigger } from './types';
+import { debug } from "@/lib/utils"
 
 export interface TimeState {
     currentTimeMs: number;
@@ -9,7 +10,7 @@ export interface TimeState {
 
 export interface SyncContextType {
     activeItem: {
-        type: 'subtitle' | 'summary' | 'timestamp' |null;
+        type: 'subtitle' | 'summary' | 'timestamp' | 'slide' | null;
         id: number | null;
         time: number | null;
         trigger?: ScrollTrigger;
@@ -49,7 +50,7 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     }, [timeState.disableCount]);
 
     const seekTo = useCallback((time: number) => {
-        console.debug(`seekTo: ${time}, disableCount: ${timeState.disableCount}`);
+        // debug(`seekTo: ${time}, disableCount: ${timeState.disableCount}`);
         setTimeState(prev => ({
             ...prev,
             currentTimeMs: prev.disableCount === 0 ? time : prev.currentTimeMs,
@@ -58,7 +59,7 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const enableTimeUpdate = useCallback(() => {
-        console.debug(`enableTimeUpdate: ${timeState.disableCount}`);
+        debug(`enableTimeUpdate: ${timeState.disableCount}`);
         setTimeState(prev => ({
             ...prev,
             disableCount: Math.max(0, prev.disableCount - 1),
@@ -70,7 +71,7 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const disableTimeUpdate = useCallback(() => {
-        console.debug(`disableTimeUpdate: ${timeState.disableCount}`);
+        debug(`disableTimeUpdate: ${timeState.disableCount}`);
         setTimeState(prev => ({
             ...prev,
             disableCount: prev.disableCount + 1
@@ -100,7 +101,7 @@ export function useSync() {
     return context;
 }
 
-export function useItemsRefSync(type: 'subtitle' | 'summary' | 'timestamp'| 'all') {
+export function useItemsRefSync(type: 'subtitle' | 'summary' | 'timestamp'|'slide'| 'all') {
     const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
     const setItemRef = (key: string, element: HTMLDivElement | null) => {

@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Trash2, Save } from 'lucide-react';
+import { debug } from "@/lib/utils"
 
 interface SavedData {
   id: string;
@@ -166,10 +167,10 @@ export default function ParserApp() {
                 }
                 const timestamp = section.querySelector('.timestampString')?.textContent || '00:00:00';
                 const { startTime, endTime } = formatTimeRange(timestamp);
-                console.debug(`startTime: ${startTime}, endTime: ${endTime}`);
+                debug(`startTime: ${startTime}, endTime: ${endTime}`);
                 const startTimeValue = parseTime(startTime) + buffer;
                 const endTimeValue = parseTime(endTime) + buffer;
-                console.debug(`startTimeValue: ${startTimeValue}, endTimeValue: ${endTimeValue}`);
+                debug(`startTimeValue: ${startTimeValue}, endTimeValue: ${endTimeValue}`);
 
                 // Get items with HTML content converted to markdown
                 const items = Array.from(section.querySelectorAll('.node-listItem')).map((item, itemIndex) => {

@@ -1,4 +1,5 @@
 import { RefObject } from "react"
+import { debug } from "@/lib/utils"
 
 export interface Video {
   id: number
@@ -44,11 +45,31 @@ export interface TimestampItem {
   time: string;
 }
 
+export interface SlideRawItem {
+  id: number;
+  time: string;
+  subtitle: string;
+  category: string;
+  is_example: boolean;
+}
+export interface SlideItem {
+  id: number;
+  timestamp: string;
+  title: string;
+  category: string;
+  is_example: boolean;
+}
+
+export interface SlideGroup {
+  id: number;
+  category: string;
+  items: SlideItem[];
+}
 
 export interface SubtitleListProps {
   subtitleGroups: SubtitleGroup[];
   currentTimeMs: number;
-  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary' | 'timestamp', options?: { sourceIndex?: number; sequence?: number; }) => void;
+  onTimeSelect: (time: number | null, type: string, options?: { sourceIndex?: number; sequence?: number; }) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
   isManualScrolling: boolean;
@@ -58,7 +79,7 @@ export interface SubtitleListProps {
 export interface SummaryListProps {
   summaryGroups: SummaryGroup[];
   currentTimeMs: number;
-  onTimeSelect: (time: number|null, type: 'subtitle' | 'summary' | 'timestamp', options?: {
+  onTimeSelect: (time: number|null, type: string, options?: {
     sourceIndex: number;
     sequence?: number;
     shortcut?: number;
@@ -70,16 +91,18 @@ export interface SummaryListProps {
 export interface TimestampListProps {
   timestamps: TimestampItem[];
   currentTimeMs: number;
-  onTimeSelect: (time: number | null, type: 'subtitle' | 'summary' | 'timestamp', data?: any) => void;
+  onTimeSelect: (time: number | null, type:string, data?: any) => void;
   autoScroll: boolean;
   setAutoScroll: (value: boolean) => void;
 }
 
-export const stringToTime = (timeStr: string): number => {
-  const [hours, minutes, seconds] = timeStr.split(":").map(Number)
-  return (hours * 3600 + minutes * 60 + seconds) * 1000
+export interface SlideListProps {
+  slides: SlideItem[];
+  currentTimeMs: number;
+  onTimeSelect: (time: number | null, type: string) => void;
+  autoScroll: boolean;
+  setAutoScroll: (value: boolean) => void;
 }
-
 export enum ScrollTrigger {
   LIST_SELECTION = 'LIST_SELECTION',      // 리스트에서 직접 선택
   SHORTCUT = 'SHORTCUT',                  // 바로가기 링크로 선택
@@ -87,55 +110,3 @@ export enum ScrollTrigger {
   AUTO_SCROLL = 'AUTO_SCROLL',             // 자동 스크롤,              // 비디오 시간 변경
   AFTER_MOUNT = 'AFTER_MOUNT'  
 }
-
-
-export const getSubtitle = (subtitleGroups:SubtitleGroup[], sourceIndex:number, sequence:number)=>{
-  for (const group of subtitleGroups) {
-    if (group.sourceIndex === sourceIndex) {
-      const item = group.items.find(item => item.sequence === sequence);
-      if (item) {
-        console.debug(`sourceIndex: ${sourceIndex}, sequence:${sequence}, item: ${item?.id}`)
-        return item;
-      }
-    }
-  }
-  return undefined;
-}
-
-export const getSubtitleAndGroupById = (subtitleGroups:SubtitleGroup[], id:number)=>{
-  for (const group of subtitleGroups) {
-    const item = group.items.find(item => item.id === id);
-    if (item) return { item, group };
-  }
-  return undefined;
-}
-
-
-export const getTargetkeyById = (subtitleGroups:SubtitleGroup[], id:number)=>{
-  const result = getSubtitleAndGroupById(subtitleGroups, id);
-  if(!result) return null;
-  const { item, group } = result;
-
-  if( item && group){
-    return `${group.sourceIndex}-${item.sequence}`;
-  }
-  return null;
-}
-
-
-export const getSummary = (summaryGroups:SummaryGroup[], id:number)=>{
-  for (const group of summaryGroups) {
-      const item = group.items.find(item => item.id === id);
-      if (item) return item;
-  }
-  return undefined;
-}
-
-
-export const getSummaryByGroup = (summaryGroups:SummaryGroup[], group_id:number)=>{
-  const group =  summaryGroups.find(group => group.id === group_id);
-  if(!group || group.items.length === 0) return undefined;
-  return group.items[0];
-}
-
-

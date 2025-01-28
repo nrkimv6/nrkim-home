@@ -7,10 +7,12 @@ import { VideoPlayer } from "./video-player"
 import { SubtitleList } from "./subtitle-list"
 import { SummaryList } from "./summary-list"
 import { useItemsRefSync, useSync } from "./sync-context"
-import { stringToTime, SubtitleGroup, SummaryGroup, Video, ScrollTrigger, getSubtitle, TimestampItem } from "./types"
+import { SubtitleGroup, SummaryGroup, Video, ScrollTrigger, TimestampItem, SlideItem, SlideRawItem } from "./types"
 import React from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TimestampList } from "./timestamp-list"
+import { SlideList } from "./slide-list"
+import { debug, getSubtitle, stringToTime, getSummaryGroup } from "@/lib/utils"
 
 interface CurrentGroupState {
   current?: SummaryGroup;
@@ -30,12 +32,13 @@ export function PlayComponent() {
   const [subtitleGroups, setSubtitleGroups] = useState<SubtitleGroup[]>([])
   const [summaryGroups, setSummaryGroups] = useState<SummaryGroup[]>([])
   const [timestamps, setTimeStamps] = useState<TimestampItem[]>([])
-  const [autoScroll, setAutoScroll] = useState(true)
+  const [slides, setSlides] = useState<SlideItem[]>([])
+  const [autoScroll, setAutoScroll] = useState(false)
   const [isManualScrolling, setIsManualScrolling] = useState(false)
   const [skipMountScroll, setSkipMountScroll] = useState(false)
 
   const { activeItem, setActiveItem, setPendingScroll, pendingScroll, timeState, setCurrentTime, seekTo, disableTimeUpdate, enableTimeUpdate } = useSync();
-  const [activeBottomTab, setActiveBottomTab] = useState("summary");
+  const [activeBottomTab, setActiveBottomTab] = useState("slide");
   const currentTimeMs = timeState.currentTimeMs * 1000;
   const videos: Video[] = [
     {
@@ -97,6 +100,23 @@ export function PlayComponent() {
       }
     };
 
+    const loadSlides = async () => {
+      try {
+        const response = await fetch('/data/slides.json');
+        const data = await response.json();
+        // 각 슬라이드에 id 추가
+        const slidesWithId = data.map((slide: SlideRawItem, index: number) => ({
+          ...slide,
+          timestamp: slide.time,
+          title: slide.subtitle,
+          id: index + 1  // 1부터 시작하는 id 부여
+        }));
+        setSlides(slidesWithId);
+      } catch (error) {
+        console.error('슬라이드를 불러오는데 실패했습니다:', error);
+      }
+    };
+
     if (subtitleGroups.length === 0) {
       loadSubtitles();
     }
@@ -105,6 +125,9 @@ export function PlayComponent() {
     }
     if (timestamps.length === 0) {
       loadTimestamps();
+    }
+    if (slides.length === 0) {
+      loadSlides();
     }
   }, []);
 
@@ -123,9 +146,8 @@ export function PlayComponent() {
       if (playerRef.current) {
         const currentTime = playerRef.current.getCurrentTime()
         setCurrentTime(currentTime);
-        // console.debug(`currentTime: ${currentTime}, disableCount: ${timeState.disableCount}`);
       }
-    }, 100)
+    }, 500)  // 500ms로 변경
   }
 
   const stopTimeSync = () => {
@@ -155,11 +177,11 @@ export function PlayComponent() {
     return null;
   }
 
-  const onTimeSelect = (time: number | null, type: 'subtitle' | 'summary' | 'timestamp', options?: {
+  const onTimeSelect = (time: number | null, type: string, options?: {
     sourceIndex?: number;
     sequence?: number;
   }) => {
-    console.log(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
+    // console.log(`onTimeSelect: ${time}, type: ${type}, options: ${options}`);
 
     disableTimeUpdate();  // 시간 업데이트 비활성화
 
@@ -201,7 +223,7 @@ export function PlayComponent() {
       }
       else {
         setActiveItem({
-          type,
+          type: type as 'subtitle' | 'summary' | 'timestamp' | 'slide' | null,
           id: null,
           time: time,
           trigger: ScrollTrigger.SHORTCUT
@@ -268,7 +290,7 @@ export function PlayComponent() {
           id: firstItem.id,
           time: currentTimeMs
         });
-        console.debug('Set active summary from currentGroup:', firstItem.id);
+        debug('Set active summary from currentGroup:', firstItem.id);
         return true;
       }
     }
@@ -301,7 +323,7 @@ export function PlayComponent() {
       if (group) {
         return { current: group };
       }
-      console.debug(`activeItem: ${JSON.stringify(activeItem)}, currentGroup: ${JSON.stringify(group)}`);
+      debug(`activeItem: ${JSON.stringify(activeItem)}, currentGroup: ${JSON.stringify(group)}`);
     }
 
     // 현재 시간에 해당하는 summary 찾기
@@ -314,13 +336,13 @@ export function PlayComponent() {
       currentTimeMs >= stringToTime(group.startTime) &&
       currentTimeMs < stringToTime(group.endTime)
     );
-    // console.debug(`currentIdx: ${currentIdx}, currentTimeMs: ${currentTimeMs}, currentGroup: ${JSON.stringify(sortedGroups[currentIdx]?.title)}`);
+    // debug(`currentIdx: ${currentIdx}, currentTimeMs: ${currentTimeMs}, currentGroup: ${JSON.stringify(sortedGroups[currentIdx]?.title)}`);
 
     if (currentIdx !== -1) {
       return { current: sortedGroups[currentIdx] };
     }
 
-    // console.debug(`currentIdx: ${currentIdx}, activeId : ${activeItem?.id}`);
+    // debug(`currentIdx: ${currentIdx}, activeId : ${activeItem?.id}`);
 
     // 현재 시간이 속한 그룹이 없는 경우, 전후 그룹 찾기
     const nextIdx = sortedGroups.findIndex(group =>
@@ -348,7 +370,7 @@ export function PlayComponent() {
 
   useEffect(() => {
     if (currentGroup) {
-      // console.debug(`currentGroup: ${JSON.stringify(currentGroup.current?.title)}`);
+      // debug(`currentGroup: ${JSON.stringify(currentGroup.current?.title)}`);
       if (currentGroup.current) {
         setCurrentTitle(currentGroup.current.title);
       } else if (currentGroup.previous && currentGroup.next) {
@@ -375,7 +397,7 @@ export function PlayComponent() {
 
   // 비디오 재생 중 시간 업데이트
   const handleTimeUpdate = (time: number) => {
-    // console.debug(`handleTimeUpdate: ${time}`);
+    // debug(`handleTimeUpdate: ${time}`);
     // setCurrentTime(time);
   };
 
@@ -389,6 +411,46 @@ export function PlayComponent() {
   };
 
   const [summaryUpdateFlag, setSummaryUpdateFlag] = useState({ flag: 0, groupId: 0 });
+
+  const [currentSlideTitle, setCurrentSlideTitle] = useState<string | null>(null);
+
+  // 디바운스된 시간 상태 추가
+  const debouncedTimeMs = useMemo(() => {
+    return Math.floor(currentTimeMs / 500) * 500;  // 500ms 단위로 반올림
+  }, [currentTimeMs]);
+
+  // currentSlide 계산에 debouncedTimeMs 사용
+  const currentSlide = useMemo(() => {
+    const sortedSlides = [...slides].sort((a, b) => 
+      stringToTime(a.timestamp) - stringToTime(b.timestamp)
+    );
+    
+    const currentIndex = sortedSlides.findIndex((slide, index) => {
+      const currentTime = stringToTime(slide.timestamp);
+      const nextTime = index < sortedSlides.length - 1 
+        ? stringToTime(sortedSlides[index + 1].timestamp)
+        : Infinity;
+      
+      return debouncedTimeMs >= currentTime && debouncedTimeMs < nextTime;
+    });
+
+    return currentIndex !== -1 ? sortedSlides[currentIndex] : null;
+  }, [debouncedTimeMs, slides]);
+
+  // 현재 슬라이드 title 업데이트
+  useEffect(() => {
+    setCurrentSlideTitle(currentSlide?.title || null);
+  }, [currentSlide]);
+
+  const setSummaryUpdate = (flag: number, groupId: number) => {
+    if (activeBottomTab === 'summary') {
+      setSummaryUpdateFlag({ flag, groupId });
+    }
+    else {
+      const group = getSummaryGroup(summaryGroups, groupId)
+      onTimeSelect(stringToTime(group?.startTime || "00:00:00.000"), 'all');
+    }
+  }
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -481,37 +543,65 @@ export function PlayComponent() {
           )}
           <div className="my-4 px-4 py-2 bg-muted rounded-md flex items-center gap-3">
             <span className="text-sm font-medium text-primary">현재: </span>
-            {/* <span className="text-sm text-muted-foreground">
-              {currentTitle || "재생 중인 섹션 없음"}
-            </span> */}
-            <Select
-              value={currentGroup?.current?.id?.toString() || ''}
-              onValueChange={(value) => {
-                const group = summaryGroups.find(g => g.id.toString() === value);
-                if (group) {
-                  setSummaryUpdateFlag({
-                    flag: Date.now(),  // 또는 prev => prev + 1
-                    groupId: group.id
-                  });
-                }
-              }}
-            >
-              <SelectTrigger className="flex-1 h-8 px-2 bg-transparent border-0 hover:bg-accent">
+            <div className="flex-1 flex flex-col gap-1">
+              <div className="text-xs text-muted-foreground">
+                {currentTitle}
+              </div>
+              {/* <Select
+                value={currentGroup?.current?.id?.toString() || ''}
+                onValueChange={(value) => {
+                  const group = summaryGroups.find(g => g.id.toString() === value);
+                  if (group) {
+                    setSummaryUpdate(
+                       Date.now(),
+                      group.id
+                    );
+                  }
+                }}
+              >
+                <SelectTrigger className="flex-1 h-8 px-2 bg-transparent border-0 hover:bg-accent">
                 <SelectValue placeholder={currentTitle || "재생 중인 섹션 없음"} />
-              </SelectTrigger>
-              <SelectContent>
-                {summaryGroups.map((group) => (
-                  <SelectItem
-                    key={group.id}
-                    value={group.id.toString()}
-                    className="flex items-center"
-                  >
-                    {group.id === currentGroup?.current?.id ? "► " : ""}
-                    {group.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectTrigger>
+                <SelectContent>
+                  {summaryGroups.map((group) => (
+                    <SelectItem
+                      key={group.id}
+                      value={group.id.toString()}
+                      className="flex items-center"
+                    >
+                      {group.id === currentGroup?.current?.id ? "► " : ""}
+                      {group.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select> */}
+
+              <Select
+                value={currentSlide?.id?.toString() || ''}
+                onValueChange={(value) => {
+                  const slide = slides.find(s => s.id.toString() === value);
+                  if (slide) {
+                    onTimeSelect(stringToTime(slide.timestamp), 'slide');
+                  }
+                }}
+              >
+                <SelectTrigger className="flex-1 h-8 px-2 bg-transparent border-0 hover:bg-accent">
+                  <SelectValue placeholder={currentSlideTitle || "현재 슬라이드 없음"} />
+                </SelectTrigger>
+                <SelectContent className="min-w-[300px]">
+                  {slides.map((slide) => (
+                    <SelectItem
+                      key={slide.id}
+                      value={slide.id.toString()}
+                      className="flex items-center justify-between gap-8"
+                    >
+                      <span className="flex-1 truncate min-w-0">{slide.id === currentSlide?.id ? "► " : ""}{slide.title}</span>
+                      <span className="text-muted-foreground whitespace-nowrap ml-8 w-[80px] text-right">{slide.timestamp.split('.')[0]}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
               <span className="text-xs text-muted-foreground">{formatTime(currentTimeMs)}</span>
@@ -523,7 +613,8 @@ export function PlayComponent() {
           <TabsList>
             <TabsTrigger value="summary">요약</TabsTrigger>
             <TabsTrigger value="subtitle">자막</TabsTrigger>
-            <TabsTrigger value="timestamp">타임스탬프</TabsTrigger>
+            {/* <TabsTrigger value="timestamp">타임스탬프</TabsTrigger> */}
+            <TabsTrigger value="slide">슬라이드</TabsTrigger>
           </TabsList>
           <Card>
             <Tabs value={activeBottomTab} onValueChange={setActiveBottomTab}>
@@ -551,6 +642,15 @@ export function PlayComponent() {
               <TabsContent value="timestamp">
                 <TimestampList
                   timestamps={timestamps}
+                  currentTimeMs={currentTimeMs}
+                  onTimeSelect={onTimeSelect}
+                  autoScroll={autoScroll}
+                  setAutoScroll={setAutoScroll}
+                />
+              </TabsContent>
+              <TabsContent value="slide">
+                <SlideList
+                  slides={slides}
                   currentTimeMs={currentTimeMs}
                   onTimeSelect={onTimeSelect}
                   autoScroll={autoScroll}

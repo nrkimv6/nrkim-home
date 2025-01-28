@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils"
 import { useItemsRefSync, useSync } from "./sync-context";
-import { stringToTime, ScrollTrigger, TimestampListProps, TimestampItem } from "./types";
+import { ScrollTrigger, TimestampListProps, TimestampItem } from "./types";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-
+import { stringToTime } from "@/lib/utils"
 export function TimestampList({
   timestamps,
   currentTimeMs,
@@ -16,8 +16,6 @@ export function TimestampList({
   const { activeItem } = useSync();
   const { setItemRef, getItemRef } = useItemsRefSync('timestamp');
   const [isManualScrolling, setIsManualScrolling] = useState(false);
-
-  console.log();
 
   // 현재 시간에 해당하는 타임스탬프 찾기
   const getCurrentItem = useMemo(() => {

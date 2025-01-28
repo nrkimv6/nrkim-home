@@ -2,11 +2,12 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from 'react-markdown'
 import { useItemsRefSync, useSync, SyncContextType } from "./sync-context";
 import { Switch } from "../ui/switch";
-import { getSummary, getSummaryByGroup, ScrollTrigger, stringToTime, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
+import {  ScrollTrigger, SummaryGroup, SummaryItem, SummaryListProps } from "./types";
 import { useEffect, useMemo, useState, memo, useImperativeHandle, forwardRef } from "react";
 import { Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ArrowDown } from "lucide-react"
+import { debug, getSummary, getSummaryByGroup, stringToTime } from "@/lib/utils"
 
 // SummaryItem 컴포넌트를 분리
 const SummaryItemComponent = memo(({ 
@@ -86,7 +87,7 @@ export function SummaryList({
             id: summary?.id,
             time: null
           });
-          console.debug(`setScrollKey by mount: ${currentItems[0].id}, targetElement: ${currentItems[0].id} and ${summary?.id}`);
+          // debug(`setScrollKey by mount: ${currentItems[0].id}, targetElement: ${currentItems[0].id} and ${summary?.id}`);
           setScrollKey(currentItems[0].id);
           console.log('Active Item Debug:', {
             summary: summary,
@@ -102,7 +103,7 @@ export function SummaryList({
       }
       else{
         scrollToCurrentItem();
-        console.debug(`scroll to currenItem by mount: ${activeItem.id}`);
+        debug(`scroll to currenItem by mount: ${activeItem.id}`);
       }
   }, []);
 
@@ -147,7 +148,7 @@ export function SummaryList({
       if (currentVisibleGroup && newTargetGroups.includes(currentVisibleGroup)) {
         return;
       }
-      // console.debug(`setTargetGroups: ${newTargetGroups}, autoscroll : ${autoScroll}, isManualScrolling: ${isManualScrolling}`);
+      // debug(`setTargetGroups: ${newTargetGroups}, autoscroll : ${autoScroll}, isManualScrolling: ${isManualScrolling}`);
       setTargetGroups(newTargetGroups);
     }
   }, [currentTimeMs, autoScroll, getCurrentItems, currentVisibleGroup, isManualScrolling]);
@@ -156,25 +157,25 @@ export function SummaryList({
     if (targetGroups.length > 0 && itemRefs) {
       const targetElement = getItemRef(targetGroups[0].toString());
       if (targetElement) {
-        // console.debug(`setScrollKey by targetGroups[0]: ${targetGroups[0]}`);
+        // debug(`setScrollKey by targetGroups[0]: ${targetGroups[0]}`);
         setScrollKey(targetGroups[0]);
       }
     }
   }, [targetGroups]);
 
   useEffect(() => {
-    console.debug(`scrollKey: ${scrollKey}`);
+    debug(`scrollKey: ${scrollKey}`);
     if( scrollKey ){
       const targetElement = getItemRef(scrollKey.toString());
       if (targetElement) {
-        // console.debug(`scrollKey: ${scrollKey}, targetElement: ${targetElement}`);
+        // debug(`scrollKey: ${scrollKey}, targetElement: ${targetElement}`);
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }, [scrollKey]);
 
   useEffect(() => {
-    console.debug(`activeItem changed : summary-list- ${activeItem?.type}, ${activeItem?.id}, ${activeItem?.time}`);
+    debug(`activeItem changed : summary-list- ${activeItem?.type}, ${activeItem?.id}, ${activeItem?.time}`);
     if( activeItem?.type === 'summary' && activeItem?.id != null){
       setTimeout(() => {
         setActiveItem({type:null, id:null, time:null});
@@ -239,7 +240,7 @@ export function SummaryList({
   useEffect(() => {
     if (updateFlag.flag > 0 && updateFlag.groupId) {
       const group = summaryGroups.find(g => g.id === updateFlag.groupId);
-      console.debug(`updateFlag: ${updateFlag.flag}, groupId: ${updateFlag.groupId}`);
+      debug(`updateFlag: ${updateFlag.flag}, groupId: ${updateFlag.groupId}`);
       if (group) {
         handleGroupClick(group);
       }
