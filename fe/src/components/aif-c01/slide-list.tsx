@@ -20,7 +20,9 @@ export function SlideList({
   const { activeItem } = useSync();
   const { setItemRef, getItemRef } = useItemsRefSync('slide');
   const [isManualScrolling, setIsManualScrolling] = useState(false);
+  
   const [offsetMs, setOffsetMs] = useState(() => {
+    if(localStorage === undefined) return 1000;
     const savedOffset = localStorage.getItem('slideOffsetMs');
     return savedOffset ? parseInt(savedOffset) : 1000;
   });
