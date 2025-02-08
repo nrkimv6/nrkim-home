@@ -122,8 +122,11 @@ const ExamPage = () => {
 
                                     <div className="space-y-3">
                                         {q.choices.map((choice, idx) => {
-                                            const isAnswer = showAnswers[q.number] && 
-                                                choice[0].toLowerCase() === q.answer.toLowerCase();
+                                            const isAnswer = choice[0].toLowerCase() === q.answer.toLowerCase();
+                                            const isSelected = selectedAnswers[q.number] === choice[0].toLowerCase();
+                                            const isWrongSelection = showAnswers[q.number] && 
+                                                selectedAnswers[q.number] && 
+                                                selectedAnswers[q.number] !== q.answer.toLowerCase();
                                             
                                             return (
                                                 <div key={idx} className="flex items-center space-x-2">
@@ -132,7 +135,7 @@ const ExamPage = () => {
                                                         id={`q${q.number}-${idx}`}
                                                         name={`question-${q.number}`}
                                                         value={choice[0].toLowerCase()}
-                                                        checked={selectedAnswers[q.number] === choice[0].toLowerCase()}
+                                                        checked={isSelected}
                                                         onChange={() => handleAnswerSelect(q.number, choice[0].toLowerCase())}
                                                         className="w-4 h-4"
                                                     />
@@ -140,7 +143,9 @@ const ExamPage = () => {
                                                         htmlFor={`q${q.number}-${idx}`} 
                                                         className={`
                                                             text-gray-700
-                                                            ${isAnswer ? 'bg-green-100 font-semibold px-2 py-1 rounded' : ''}
+                                                            ${showAnswers[q.number] && isSelected && isAnswer ? 'bg-green-100' : ''}
+                                                            ${showAnswers[q.number] && isAnswer && isWrongSelection ? 'bg-red-100' : ''}
+                                                            font-semibold px-2 py-1 rounded
                                                         `}
                                                     >
                                                         {choice}
