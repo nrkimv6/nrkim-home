@@ -22,7 +22,7 @@ export function SlideList({
   const [isManualScrolling, setIsManualScrolling] = useState(false);
 
   const [offsetMs, setOffsetMs] = useState(() => {
-    if(localStorage === undefined) return 1000;
+    if( typeof window === undefined ) return 1000;
     const savedOffset = localStorage.getItem('slideOffsetMs');
     return savedOffset ? parseInt(savedOffset) : 1000;
   });
@@ -111,7 +111,7 @@ export function SlideList({
     if (!isNaN(value)) {
       const newOffsetMs = value * 1000;
       setOffsetMs(newOffsetMs);
-      if(localStorage === undefined) return;
+      if( typeof window === undefined ) return;
       localStorage.setItem('slideOffsetMs', newOffsetMs.toString());
     }
   };

@@ -26,7 +26,7 @@ export default function ParserApp() {
     const [savedList, setSavedList] = useState<SavedData[]>([]);
 
     useEffect(() => {
-        if (localStorage === undefined) return;
+        if (window === undefined) return;
 
         const saved = localStorage.getItem('parserData');
         if (saved) {
@@ -61,7 +61,7 @@ export default function ParserApp() {
         };
 
         const updatedList = [...savedList, newData];
-        if (localStorage !== undefined) {
+        if (typeof window !== undefined) {
             localStorage.setItem('parserData', JSON.stringify(updatedList));
         }
         setSavedList(updatedList);
@@ -77,7 +77,7 @@ export default function ParserApp() {
     const handleDelete = (id: string) => {
         const updatedList = savedList.filter(item => item.id !== id);
 
-        if (localStorage !== undefined) {
+        if (typeof window !== undefined) {
             localStorage.setItem('parserData', JSON.stringify(updatedList));
         }
         setSavedList(updatedList);
