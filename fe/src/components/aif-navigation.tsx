@@ -9,12 +9,17 @@ const aifRoutes = [
   {
     path: "/aif-c01",
     title: "메인",
-    visible: false
+    visible: true
   },
   {
     path: "/aif-c01/study",
     title: "학습하기",
     visible: false
+  },
+  {
+    path: "/aif-c01/question",
+    title: "문제풀기",
+    visible: true
   }
 ]
 

@@ -3,7 +3,7 @@ import { stringToTime } from "../../lib/utils";
 
 export const loadSubtitles = async () => {
     try {
-      const response = await fetch('/data/subtitles.json');
+      const response = await fetch('/data/aif-c01/subtitles.json');
       const data = await response.json();
       const subtitlesWithTimeValue = data.map((item: SubtitleRawItem) => ({
         ...item,
@@ -18,7 +18,7 @@ export const loadSubtitles = async () => {
 
 export const loadSummaries = async () => {
     try {
-      const response = await fetch('/data/summaries.json');
+      const response = await fetch('/data/aif-c01/summaries.json');
       const data = await response.json();
       const summariesWithTimeValue = data.map((group: SummaryRawGroup) => ({
         ...group,
@@ -33,7 +33,7 @@ export const loadSummaries = async () => {
 
 export const loadTimestamps = async () => {
     try {
-      const response = await fetch('/data/timestamps.json');
+      const response = await fetch('/data/aif-c01/timestamps.json');
       const data = await response.json();
       const timestampsWithTimeValue = data.images.map((item: TimestampRawItem) => ({
         ...item,
@@ -47,7 +47,7 @@ export const loadTimestamps = async () => {
 
 export const loadSlides = async () => {
     try {
-      const response = await fetch('/data/slides.json');
+      const response = await fetch('/data/aif-c01/slides.json');
       const data = await response.json();
       // 각 슬라이드에 id 추가
       const slidesWithId = data.map((slide: SlideRawItem, index: number) => ({
