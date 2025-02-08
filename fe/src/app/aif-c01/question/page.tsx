@@ -121,22 +121,33 @@ const ExamPage = () => {
                                     <p className="text-gray-800 mb-4">{q.question}</p>
 
                                     <div className="space-y-3">
-                                        {q.choices.map((choice, idx) => (
-                                            <div key={idx} className="flex items-center space-x-2">
-                                                <input
-                                                    type="radio"
-                                                    id={`q${q.number}-${idx}`}
-                                                    name={`question-${q.number}`}
-                                                    value={choice[0].toLowerCase()}
-                                                    checked={selectedAnswers[q.number] === choice[0].toLowerCase()}
-                                                    onChange={() => handleAnswerSelect(q.number, choice[0].toLowerCase())}
-                                                    className="w-4 h-4"
-                                                />
-                                                <label htmlFor={`q${q.number}-${idx}`} className="text-gray-700">
-                                                    {choice}
-                                                </label>
-                                            </div>
-                                        ))}
+                                        {q.choices.map((choice, idx) => {
+                                            const isAnswer = showAnswers[q.number] && 
+                                                choice[0].toLowerCase() === q.answer.toLowerCase();
+                                            
+                                            return (
+                                                <div key={idx} className="flex items-center space-x-2">
+                                                    <input
+                                                        type="radio"
+                                                        id={`q${q.number}-${idx}`}
+                                                        name={`question-${q.number}`}
+                                                        value={choice[0].toLowerCase()}
+                                                        checked={selectedAnswers[q.number] === choice[0].toLowerCase()}
+                                                        onChange={() => handleAnswerSelect(q.number, choice[0].toLowerCase())}
+                                                        className="w-4 h-4"
+                                                    />
+                                                    <label 
+                                                        htmlFor={`q${q.number}-${idx}`} 
+                                                        className={`
+                                                            text-gray-700
+                                                            ${isAnswer ? 'bg-green-100 font-semibold px-2 py-1 rounded' : ''}
+                                                        `}
+                                                    >
+                                                        {choice}
+                                                    </label>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
 
                                     <div className="mt-4">
