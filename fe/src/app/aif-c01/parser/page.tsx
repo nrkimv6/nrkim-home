@@ -26,7 +26,7 @@ export default function ParserApp() {
     const [savedList, setSavedList] = useState<SavedData[]>([]);
 
     useEffect(() => {
-        if (window === undefined) return;
+        if ( typeof window === undefined) return;
 
         const saved = localStorage.getItem('parserData');
         if (saved) {
