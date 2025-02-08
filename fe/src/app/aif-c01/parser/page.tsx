@@ -26,11 +26,15 @@ export default function ParserApp() {
     const [savedList, setSavedList] = useState<SavedData[]>([]);
 
     useEffect(() => {
-        if ( typeof window === undefined) return;
-
-        const saved = localStorage.getItem('parserData');
-        if (saved) {
-            setSavedList(JSON.parse(saved));
+        if (typeof window !== 'undefined') {
+            try {
+                const saved = localStorage.getItem('parserData');
+                if (saved) {
+                    setSavedList(JSON.parse(saved));
+                }
+            } catch (e) {
+                console.error('localStorage 접근 중 에러 발생:', e);
+            }
         }
     }, []);
 
@@ -61,10 +65,14 @@ export default function ParserApp() {
         };
 
         const updatedList = [...savedList, newData];
-        if (typeof window !== undefined) {
-            localStorage.setItem('parserData', JSON.stringify(updatedList));
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('parserData', JSON.stringify(updatedList));
+                setSavedList(updatedList);
+            } catch (e) {
+                console.error('localStorage 저장 중 에러 발생:', e);
+            }
         }
-        setSavedList(updatedList);
     };
 
     const handleLoad = (data: SavedData) => {
@@ -76,11 +84,14 @@ export default function ParserApp() {
 
     const handleDelete = (id: string) => {
         const updatedList = savedList.filter(item => item.id !== id);
-
-        if (typeof window !== undefined) {
-            localStorage.setItem('parserData', JSON.stringify(updatedList));
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('parserData', JSON.stringify(updatedList));
+                setSavedList(updatedList);
+            } catch (e) {
+                console.error('localStorage 삭제 중 에러 발생:', e);
+            }
         }
-        setSavedList(updatedList);
     };
 
     const handleReset = () => {

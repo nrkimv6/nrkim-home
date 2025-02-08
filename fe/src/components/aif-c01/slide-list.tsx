@@ -22,7 +22,7 @@ export function SlideList({
   const [isManualScrolling, setIsManualScrolling] = useState(false);
 
   const [offsetMs, setOffsetMs] = useState(() => {
-    if( typeof window === undefined ) return 1000;
+    if( typeof window === 'undefined' ) return 1000;
     const savedOffset = localStorage.getItem('slideOffsetMs');
     return savedOffset ? parseInt(savedOffset) : 1000;
   });
@@ -95,7 +95,7 @@ export function SlideList({
 
   // 시간 표시 포맷팅 (밀리초 제거)
   const formatTime = (timeStr: string) => {
-    if(!timeStr || timeStr === undefined ) return '00:00';
+    if(!timeStr || timeStr === 'undefined' ) return '00:00';
     return timeStr.split('.')[0];  // 밀리초 부분 제거
   };
 
@@ -111,7 +111,7 @@ export function SlideList({
     if (!isNaN(value)) {
       const newOffsetMs = value * 1000;
       setOffsetMs(newOffsetMs);
-      if( typeof window === undefined ) return;
+      if( typeof window === 'undefined' ) return;
       localStorage.setItem('slideOffsetMs', newOffsetMs.toString());
     }
   };
