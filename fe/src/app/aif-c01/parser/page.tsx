@@ -9,12 +9,12 @@ import { Trash2, Save } from 'lucide-react';
 import { debug } from "@/lib/utils"
 
 interface SavedData {
-  id: string;
-  timeBuffer: string;
-  subtitleInput: string;
-  summaryInput: string;
-  fileNameBase: string;
-  timestamp: number;
+    id: string;
+    timeBuffer: string;
+    subtitleInput: string;
+    summaryInput: string;
+    fileNameBase: string;
+    timestamp: number;
 }
 
 export default function ParserApp() {
@@ -26,6 +26,8 @@ export default function ParserApp() {
     const [savedList, setSavedList] = useState<SavedData[]>([]);
 
     useEffect(() => {
+        if (localStorage === undefined) return;
+
         const saved = localStorage.getItem('parserData');
         if (saved) {
             setSavedList(JSON.parse(saved));
@@ -57,9 +59,11 @@ export default function ParserApp() {
             fileNameBase,
             timestamp: Date.now()
         };
-        
+
         const updatedList = [...savedList, newData];
-        localStorage.setItem('parserData', JSON.stringify(updatedList));
+        if (localStorage !== undefined) {
+            localStorage.setItem('parserData', JSON.stringify(updatedList));
+        }
         setSavedList(updatedList);
     };
 
@@ -72,7 +76,10 @@ export default function ParserApp() {
 
     const handleDelete = (id: string) => {
         const updatedList = savedList.filter(item => item.id !== id);
-        localStorage.setItem('parserData', JSON.stringify(updatedList));
+
+        if (localStorage !== undefined) {
+            localStorage.setItem('parserData', JSON.stringify(updatedList));
+        }
         setSavedList(updatedList);
     };
 
@@ -102,12 +109,12 @@ export default function ParserApp() {
         const doc = parser.parseFromString(input, 'text/html');
         const groupedSentences = Array.from(doc.querySelectorAll('.grouped-sentence'));
         const buffer = parseTime(timeBuffer);
-        
+
         return groupedSentences.map((group, groupIndex) => {
             const sentences = Array.from(group.querySelectorAll('.eachChunk'));
             const groupTimeStampValue = group.querySelector('.timestamp')?.textContent?.trim() || '00:00:00';
-            const groupTimestamp = parseTime(groupTimeStampValue)+ buffer;
-            
+            const groupTimestamp = parseTime(groupTimeStampValue) + buffer;
+
             const sentenceDetails = sentences.map((sentence, index) => {
                 const sequence = sentence.querySelector('.sentence-number')?.textContent;
                 const timestamp = sentence.querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content');
@@ -116,7 +123,7 @@ export default function ParserApp() {
                 const endTime = index < sentences.length - 1
                     ? parseTime(sentences[index + 1].querySelector('[data-tooltip-content]')?.getAttribute('data-tooltip-content') || '00:00:00') + buffer
                     : startTime + 5;
-                    
+
                 return {
                     id: index + 1,
                     sequence: parseInt(sequence || '0') || index + 1,
@@ -125,7 +132,7 @@ export default function ParserApp() {
                     text
                 };
             });
-            
+
             return {
                 id: groupIndex + 1,
                 // timestamp: groupTimestamp.replace(/[^\d:]/g, ''),
@@ -210,8 +217,8 @@ export default function ParserApp() {
                 return {
                     id: groupIndex + 1,
                     title,
-                    startTime : formatTime(startTimeValue),
-                    endTime : formatTime(endTimeValue),
+                    startTime: formatTime(startTimeValue),
+                    endTime: formatTime(endTimeValue),
                     items: uniqueItems
                 };
             });
