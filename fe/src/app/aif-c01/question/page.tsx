@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { ExternalLink } from 'lucide-react';
 import { AIFNavigation } from '@/components/aif-navigation';
+import { decrypt } from '@/lib/crypto';
 
 interface Comment {
     user: string;
@@ -25,6 +26,12 @@ interface Question {
     comments: Comment[];
 }
 
+declare global {
+  interface Window {
+    __INITIAL_QUESTIONS__: string;
+  }
+}
+
 const ExamPage = () => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
@@ -36,10 +43,9 @@ const ExamPage = () => {
     useEffect(() => {
         const loadQuestions = async () => {
             try {
-                const lang = isEnglish ? 'en' : 'ko';
-                const response = await fetch(`/data/aif-c01/questions_${lang}.json`);
-                const data = await response.json();
-                setQuestions(data);
+                const encryptedData = window.__INITIAL_QUESTIONS__;
+                const data = JSON.parse(decrypt(encryptedData));
+                setQuestions(isEnglish ? data.questions_en : data.questions_ko);
             } catch (error) {
                 console.error('Error loading questions:', error);
             }

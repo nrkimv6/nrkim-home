@@ -17,6 +17,12 @@ export interface SubtitleRawItem {
   endTime: string;
   text: string;
 }
+export interface SubtitleRawGroup {
+  id: number;
+  timestamp: string;
+  items:SubtitleRawItem[];
+  sourceIndex: number;
+}
 export interface SubtitleItem {
   id: number;
   sequence: number;
