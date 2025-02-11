@@ -89,86 +89,161 @@ const ExamPage = () => {
     const totalPages = Math.ceil(questions.length / questionsPerPage);
 
     const handleDownloadPDF = async () => {
-        const questions = document.querySelectorAll('.question-card');
-        if (!questions.length) return;
-
-        setIsGeneratingPDF(true);
-        setPdfProgress(0);
-
-        // 임시로 print:hidden 클래스를 가진 요소들을 숨김
-        const printHiddenElements = document.querySelectorAll('.print\\:hidden');
-        printHiddenElements.forEach(el => {
-            (el as HTMLElement).style.display = 'none';
-        });
+        const content = document.getElementById('print-content');
+        if (!content) return;
 
         try {
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            setIsGeneratingPDF(true);
+            setPdfProgress(0);
+
+            // 임시로 print:hidden 클래스를 가진 요소들을 숨김
+            const printHiddenElements = document.querySelectorAll('.print\\:hidden');
+            printHiddenElements.forEach(el => {
+                (el as HTMLElement).style.display = 'none';
+            });
+
+            // 컨텐츠를 임시로 조정
+            const originalStyle = content.style.cssText;
+            Object.assign(content.style, {
+                position: 'relative',
+                width: 'auto',
+                height: 'auto',
+                margin: '0',
+                padding: '20px',
+                transform: 'none',
+                background: '#ffffff'
+            });
+
+            // 스크롤 위치 저장
+            const originalScrollPos = window.scrollY;
+
+            // 전체 높이 계산을 위해 임시로 스타일 조정
+            const originalOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'visible';
+            window.scrollTo(0, 0);
+
+            // 테두리 스타일 임시 조정
+            const cards = content.querySelectorAll('.question-card');
+            const originalCardStyles = Array.from(cards).map((card: Element) => {
+                const cardElement = card as HTMLElement;
+                const style = {
+                    border: cardElement.style.border,
+                    boxShadow: cardElement.style.boxShadow
+                };
+                cardElement.style.border = '1px solid #e2e8f0';
+                cardElement.style.boxShadow = 'none';
+                return style;
+            });
+
+            // 전체 컨텐츠를 하나의 캔버스로 캡처
+            setPdfProgress(10);
+
+            const pdf = new jsPDF('p', 'mm', 'a4', true);
             const margin = 10;
             const pageWidth = 210 - (margin * 2);
             const pageHeight = 297 - (margin * 2);
-            let currentY = margin;
+
+            // 모든 문제 카드 요소 선택
+            const questionCards = content.querySelectorAll('.question-card');
+            const totalQuestions = questionCards.length;
             let currentPage = 0;
+            let processedQuestions = 0;
 
-            for (let i = 0; i < questions.length; i++) {
-                const question = questions[i] as HTMLElement;
+            while (processedQuestions < totalQuestions) {
+                // 현재 페이지에 들어갈 문제들을 담을 임시 컨테이너 생성
+                const tempContainer = document.createElement('div');
+                tempContainer.style.width = content.style.width;
+                tempContainer.style.background = '#ffffff';
+                tempContainer.style.padding = '20px';
                 
-                // 스크롤 위치 저장
-                const originalScrollPos = window.scrollY;
-                
-                // 요소가 뷰포트 안에 있도록 스크롤
-                question.scrollIntoView({ behavior: 'auto', block: 'center' });
-                
-                // 약간의 지연을 주어 스크롤이 완료되도록 함
-                await new Promise(resolve => setTimeout(resolve, 100));
+                let currentHeight = 0;
+                let questionsInCurrentPage = 0;
 
-                const canvas = await html2canvas(question, {
+                // 문제들을 하나씩 추가하면서 높이 체크
+                for (let i = processedQuestions; i < totalQuestions; i++) {
+                    const card = questionCards[i] as HTMLElement;
+                    const cardClone = card.cloneNode(true) as HTMLElement;
+                    tempContainer.appendChild(cardClone);
+
+                    // 임시로 body에 추가하여 높이 계산
+                    document.body.appendChild(tempContainer);
+                    const containerHeight = tempContainer.offsetHeight;
+                    document.body.removeChild(tempContainer);
+
+                    // A4 페이지 높이를 mm에서 px로 변환 (대략적인 비율 사용)
+                    const maxHeightInPx = pageHeight * 3.779528; // 1mm = 3.779528px
+
+                    if (containerHeight > maxHeightInPx) {
+                        if (questionsInCurrentPage === 0) {
+                            // 최소한 하나의 문제는 포함
+                            questionsInCurrentPage = 1;
+                        }
+                        // 마지막에 추가된 문제 제거
+                        tempContainer.removeChild(cardClone);
+                        break;
+                    }
+
+                    currentHeight = containerHeight;
+                    questionsInCurrentPage++;
+                }
+
+                // 현재 페이지의 문제들을 캡처
+                document.body.appendChild(tempContainer);
+                const canvas = await html2canvas(tempContainer, {
                     scale: 2,
                     useCORS: true,
-                    logging: false,
+                    logging: true,
                     backgroundColor: '#ffffff',
-                    windowWidth: question.scrollWidth,
-                    windowHeight: question.scrollHeight,
-                    ignoreElements: (element) => {
-                        return element.classList.contains('print:hidden');
-                    }
+                    width: tempContainer.offsetWidth,
+                    height: tempContainer.offsetHeight
                 });
+                document.body.removeChild(tempContainer);
 
-                // 원래 스크롤 위치로 복원
-                window.scrollTo(0, originalScrollPos);
+                // 첫 페이지가 아니면 새 페이지 추가
+                if (currentPage > 0) {
+                    pdf.addPage();
+                }
 
+                // PDF에 이미지 추가
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 const imgWidth = pageWidth;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                if (currentY + imgHeight > 297 - margin * 2) {
-                    pdf.addPage();
-                    currentPage++;
-                    currentY = margin;
-                }
-
                 pdf.addImage(
-                    canvas.toDataURL('image/jpeg', 0.95),
+                    imgData,
                     'JPEG',
                     margin,
-                    currentY,
+                    margin,
                     imgWidth,
-                    imgHeight
+                    Math.min(imgHeight, pageHeight)
                 );
 
-                currentY += imgHeight + 5;
+                processedQuestions += questionsInCurrentPage;
+                currentPage++;
 
-                // 진행도 업데이트
-                setPdfProgress(Math.round(((i + 1) / questions.length) * 100));
+                setPdfProgress(10 + Math.round(processedQuestions * 80 / totalQuestions));
             }
 
+            setPdfProgress(90);
             pdf.save(`questions-${isEnglish ? 'en' : 'ko'}.pdf`);
 
-        } catch (error) {
-            console.error('PDF 생성 중 오류 발생:', error);
-        } finally {
+            // 원래 스타일 복원
+            content.style.cssText = originalStyle;
+            cards.forEach((card: Element, index: number) => {
+                const cardElement = card as HTMLElement;
+                Object.assign(cardElement.style, originalCardStyles[index]);
+            });
+            window.scrollTo(0, originalScrollPos);
+            document.body.style.overflow = originalOverflow;
+
             // 숨겼던 요소들 복구
             printHiddenElements.forEach(el => {
                 (el as HTMLElement).style.removeProperty('display');
             });
+
+        } catch (error) {
+            console.error('PDF 생성 중 오류 발생:', error);
+        } finally {
             setIsGeneratingPDF(false);
             setPdfProgress(0);
         }
