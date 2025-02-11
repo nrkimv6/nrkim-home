@@ -91,6 +91,7 @@ const NavigationMenuViewport = React.forwardRef<
       )}
       ref={ref}
       {...props}
+      aria-hidden={false}
     />
   </div>
 ))

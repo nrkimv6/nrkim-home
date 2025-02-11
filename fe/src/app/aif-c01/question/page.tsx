@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { ExternalLink } from 'lucide-react';
 import { AIFNavigation } from '@/components/aif-navigation';
 import { decrypt } from '@/lib/crypto';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Comment {
     user: string;
@@ -39,6 +41,9 @@ const ExamPage = () => {
     const [isEnglish, setIsEnglish] = useState(true);
     const [questionsPerPage, setQuestionsPerPage] = useState(5);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isPrintMode, setIsPrintMode] = useState(false);
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+    const [pdfProgress, setPdfProgress] = useState(0);
 
     useEffect(() => {
         const loadQuestions = async () => {
@@ -53,6 +58,13 @@ const ExamPage = () => {
 
         loadQuestions();
     }, [isEnglish]);
+
+    useEffect(() => {
+        if (isPrintMode) {
+            setQuestionsPerPage(200);
+            setCurrentPage(1);
+        }
+    }, [isPrintMode]);
 
     const handleAnswerSelect = (questionNumber: string, answer: string) => {
         setSelectedAnswers(prev => ({
@@ -76,9 +88,95 @@ const ExamPage = () => {
 
     const totalPages = Math.ceil(questions.length / questionsPerPage);
 
+    const handleDownloadPDF = async () => {
+        const questions = document.querySelectorAll('.question-card');
+        if (!questions.length) return;
+
+        setIsGeneratingPDF(true);
+        setPdfProgress(0);
+
+        // 임시로 print:hidden 클래스를 가진 요소들을 숨김
+        const printHiddenElements = document.querySelectorAll('.print\\:hidden');
+        printHiddenElements.forEach(el => {
+            (el as HTMLElement).style.display = 'none';
+        });
+
+        try {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const margin = 10;
+            const pageWidth = 210 - (margin * 2);
+            const pageHeight = 297 - (margin * 2);
+            let currentY = margin;
+            let currentPage = 0;
+
+            for (let i = 0; i < questions.length; i++) {
+                const question = questions[i] as HTMLElement;
+                
+                // 스크롤 위치 저장
+                const originalScrollPos = window.scrollY;
+                
+                // 요소가 뷰포트 안에 있도록 스크롤
+                question.scrollIntoView({ behavior: 'auto', block: 'center' });
+                
+                // 약간의 지연을 주어 스크롤이 완료되도록 함
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const canvas = await html2canvas(question, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    windowWidth: question.scrollWidth,
+                    windowHeight: question.scrollHeight,
+                    ignoreElements: (element) => {
+                        return element.classList.contains('print:hidden');
+                    }
+                });
+
+                // 원래 스크롤 위치로 복원
+                window.scrollTo(0, originalScrollPos);
+
+                const imgWidth = pageWidth;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                if (currentY + imgHeight > 297 - margin * 2) {
+                    pdf.addPage();
+                    currentPage++;
+                    currentY = margin;
+                }
+
+                pdf.addImage(
+                    canvas.toDataURL('image/jpeg', 0.95),
+                    'JPEG',
+                    margin,
+                    currentY,
+                    imgWidth,
+                    imgHeight
+                );
+
+                currentY += imgHeight + 5;
+
+                // 진행도 업데이트
+                setPdfProgress(Math.round(((i + 1) / questions.length) * 100));
+            }
+
+            pdf.save(`questions-${isEnglish ? 'en' : 'ko'}.pdf`);
+
+        } catch (error) {
+            console.error('PDF 생성 중 오류 발생:', error);
+        } finally {
+            // 숨겼던 요소들 복구
+            printHiddenElements.forEach(el => {
+                (el as HTMLElement).style.removeProperty('display');
+            });
+            setIsGeneratingPDF(false);
+            setPdfProgress(0);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background">
-            <div className="fixed top-0 left-0 right-0 bg-white z-10 border-b">
+            <div className="fixed top-0 left-0 right-0 bg-white z-10 border-b print:hidden">
                 <AIFNavigation />
                 <div className="container mx-auto p-4">
                     <div className="flex justify-between items-center">
@@ -94,6 +192,7 @@ const ExamPage = () => {
                                     setCurrentPage(1);
                                 }}
                                 className="border rounded p-1"
+                                disabled={isPrintMode}
                             >
                                 {[1, 5, 10, 30, 50, 200].map((num) => (
                                     <option key={num} value={num}>
@@ -111,14 +210,22 @@ const ExamPage = () => {
                                 checked={isEnglish}
                                 onCheckedChange={setIsEnglish}
                             />
+                            <Label htmlFor="print-mode-toggle" className="text-sm ml-4">
+                                {isEnglish ? 'View Mode' : '보기모드'}: {isPrintMode ? (isEnglish ? 'Print' : '인쇄') : (isEnglish ? 'Solve' : '풀기')}
+                            </Label>
+                            <Switch
+                                id="print-mode-toggle"
+                                checked={isPrintMode}
+                                onCheckedChange={setIsPrintMode}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
             <main className="p-8">
-                <div className="container mx-auto p-4 mt-32">
+                <div id="print-content" className="container mx-auto p-4 mt-32 print:mt-0">
                     {getCurrentPageQuestions().map((q: Question) => (
-                        <Card key={q.number} className="mb-8">
+                        <Card key={q.number} className="mb-8 question-card">
                             <CardContent className="p-6">
                                 <div className="mb-4">
                                     <h2 className="text-xl font-bold mb-2">
@@ -136,21 +243,25 @@ const ExamPage = () => {
                                             
                                             return (
                                                 <div key={idx} className="flex items-center space-x-2">
-                                                    <input
-                                                        type="radio"
-                                                        id={`q${q.number}-${idx}`}
-                                                        name={`question-${q.number}`}
-                                                        value={choice[0].toLowerCase()}
-                                                        checked={isSelected}
-                                                        onChange={() => handleAnswerSelect(q.number, choice[0].toLowerCase())}
-                                                        className="w-4 h-4"
-                                                    />
+                                                    {!isPrintMode ? (
+                                                        <input
+                                                            type="radio"
+                                                            id={`q${q.number}-${idx}`}
+                                                            name={`question-${q.number}`}
+                                                            value={choice[0].toLowerCase()}
+                                                            checked={isSelected}
+                                                            onChange={() => handleAnswerSelect(q.number, choice[0].toLowerCase())}
+                                                            className="w-4 h-4"
+                                                        />
+                                                    ) : (
+                                                        <span className="w-4 h-4 flex items-center justify-center">•</span>
+                                                    )}
                                                     <label 
                                                         htmlFor={`q${q.number}-${idx}`} 
                                                         className={`
                                                             text-gray-700
-                                                            ${showAnswers[q.number] && isSelected && isAnswer ? 'bg-green-100' : ''}
-                                                            ${showAnswers[q.number] && isAnswer && isWrongSelection ? 'bg-red-100' : ''}
+                                                            ${(showAnswers[q.number] || isPrintMode) && isSelected && isAnswer ? 'bg-green-100' : ''}
+                                                            ${(showAnswers[q.number] || isPrintMode) && isAnswer && isWrongSelection ? 'bg-red-100' : ''}
                                                             font-semibold px-2 py-1 rounded
                                                         `}
                                                     >
@@ -162,47 +273,51 @@ const ExamPage = () => {
                                     </div>
 
                                     <div className="mt-4">
-                                        <Button
-                                            onClick={() => toggleShowAnswer(q.number)}
-                                            variant="outline"
-                                            className="mr-2"
-                                        >
-                                            {showAnswers[q.number]
-                                                ? (isEnglish ? 'Hide Answer' : '답안 숨기기')
-                                                : (isEnglish ? 'Show Answer' : '답안 확인')}
-                                        </Button>
+                                        {!isPrintMode && (
+                                            <Button
+                                                onClick={() => toggleShowAnswer(q.number)}
+                                                variant="outline"
+                                                className="mr-2"
+                                            >
+                                                {showAnswers[q.number]
+                                                    ? (isEnglish ? 'Hide Answer' : '답안 숨기기')
+                                                    : (isEnglish ? 'Show Answer' : '답안 확인')}
+                                            </Button>
+                                        )}
 
                                         <a
                                             href={q.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center text-blue-600 hover:text-blue-800"
+                                            className="inline-flex items-center text-blue-600 hover:text-blue-800 print:hidden"
                                         >
                                             <ExternalLink size={16} className="ml-1" />
                                         </a>
                                     </div>
 
-                                    {showAnswers[q.number] && (
+                                    {(showAnswers[q.number] || isPrintMode) && (
                                         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                                             <p className="font-bold text-green-600 mb-2">
                                                 {isEnglish ? 'Answer' : '정답'}: {q.answer.toUpperCase()}
                                             </p>
-                                            <div className="space-y-2">
-                                                <h3 className="font-semibold">
-                                                    {isEnglish ? 'Comments' : '댓글'}:
-                                                </h3>
-                                                {q.comments.map((comment, idx) => (
-                                                    <div key={idx} className="p-2 bg-white rounded border">
-                                                        <p className="text-sm text-gray-600 mb-1">
-                                                            {comment.user} - {isEnglish ? 'Selected' : '선택'}: {comment.selected_answer}
-                                                        </p>
-                                                        <p className="text-gray-800">{comment.content}</p>
-                                                        <p className="text-sm text-gray-500 mt-1">
-                                                            {isEnglish ? 'Upvotes' : '추천'}: {comment.upvotes}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            {!isPrintMode && (
+                                                <div className="space-y-2">
+                                                    <h3 className="font-semibold">
+                                                        {isEnglish ? 'Comments' : '댓글'}:
+                                                    </h3>
+                                                    {q.comments.map((comment, idx) => (
+                                                        <div key={idx} className="p-2 bg-white rounded border">
+                                                            <p className="text-sm text-gray-600 mb-1">
+                                                                {comment.user} - {isEnglish ? 'Selected' : '선택'}: {comment.selected_answer}
+                                                            </p>
+                                                            <p className="text-gray-800">{comment.content}</p>
+                                                            <p className="text-sm text-gray-500 mt-1">
+                                                                {isEnglish ? 'Upvotes' : '추천'}: {comment.upvotes}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -213,23 +328,55 @@ const ExamPage = () => {
                         <Button
                             variant="outline"
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 1 || isGeneratingPDF}
+                            className="print:hidden"
                         >
                             {isEnglish ? 'Previous' : '이전'}
                         </Button>
-                        <span className="mx-4">
+                        <span className="mx-4 print:hidden">
                             {currentPage} / {totalPages}
                         </span>
                         <Button
                             variant="outline"
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
+                            disabled={currentPage === totalPages || isGeneratingPDF}
+                            className="print:hidden"
                         >
                             {isEnglish ? 'Next' : '다음'}
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleDownloadPDF}
+                            disabled={isGeneratingPDF}
+                            className="ml-4 print:hidden relative min-w-[140px]"
+                        >
+                            {isGeneratingPDF ? (
+                                <>
+                                    <div className="absolute left-0 top-0 h-full bg-primary/20" style={{ width: `${pdfProgress}%` }} />
+                                    <span className="relative z-10">
+                                        {isEnglish ? `Generating ${pdfProgress}%` : `생성중 ${pdfProgress}%`}
+                                    </span>
+                                </>
+                            ) : (
+                                isEnglish ? 'Download PDF' : 'PDF 다운로드'
+                            )}
                         </Button>
                     </div>
                 </div>
             </main>
+            {isGeneratingPDF && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mx-auto mb-4" />
+                        <p className="text-lg font-semibold">
+                            {isEnglish ? 'Generating PDF...' : 'PDF 생성중...'}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-2">
+                            {pdfProgress}%
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

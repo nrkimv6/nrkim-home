@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import path from 'path'
 import fs from 'fs'
-import { encrypt } from '@/lib/crypto';  // 암호화 유틸리티
+import { encrypt } from '@/lib/crypto'
 
 export const metadata: Metadata = {
   title: 'AIF-C01 이론공부',
