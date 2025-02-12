@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch"
@@ -9,6 +9,7 @@ import { AIFNavigation } from '@/components/aif-navigation';
 import { decrypt } from '@/lib/crypto';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import ReactDOM from 'react-dom';
 
 interface Comment {
     user: string;
@@ -44,6 +45,7 @@ const ExamPage = () => {
     const [isPrintMode, setIsPrintMode] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [pdfProgress, setPdfProgress] = useState(0);
+    const questionRefs = useRef<Record<string, HTMLDivElement>>({});
 
     useEffect(() => {
         const loadQuestions = async () => {
@@ -89,156 +91,188 @@ const ExamPage = () => {
     const totalPages = Math.ceil(questions.length / questionsPerPage);
 
     const handleDownloadPDF = async () => {
-        const content = document.getElementById('print-content');
-        if (!content) return;
-
         try {
             setIsGeneratingPDF(true);
             setPdfProgress(0);
 
-            // 임시로 print:hidden 클래스를 가진 요소들을 숨김
+            // print:hidden 항목 숨기기
             const printHiddenElements = document.querySelectorAll('.print\\:hidden');
             printHiddenElements.forEach(el => {
                 (el as HTMLElement).style.display = 'none';
             });
 
-            // 컨텐츠를 임시로 조정
-            const originalStyle = content.style.cssText;
-            Object.assign(content.style, {
-                position: 'relative',
-                width: 'auto',
-                height: 'auto',
-                margin: '0',
-                padding: '20px',
-                transform: 'none',
-                background: '#ffffff'
-            });
+            const margin = 20;
+            const pageWidth = 595;
+            const pageHeight = 842;
+            const contentWidth = pageWidth - (margin * 2);
+            const contentHeight = pageHeight - (margin * 2);
+            const canvasScale = 2;
 
-            // 스크롤 위치 저장
-            const originalScrollPos = window.scrollY;
+            const findEmptySpace = (ctx: CanvasRenderingContext2D, startY: number, endY: number) => {
+                const minEmptyLines = 5;     // 텍스트 라인 높이 이하 최소 여백
+                const lineHeight = 1;        // 픽셀 단위로 검사
+                const threshold = 5;         // 약간의 노이즈 허용
 
-            // 전체 높이 계산을 위해 임시로 스타일 조정
-            const originalOverflow = document.body.style.overflow;
-            document.body.style.overflow = 'visible';
-            window.scrollTo(0, 0);
-
-            // 테두리 스타일 임시 조정
-            const cards = content.querySelectorAll('.question-card');
-            const originalCardStyles = Array.from(cards).map((card: Element) => {
-                const cardElement = card as HTMLElement;
-                const style = {
-                    border: cardElement.style.border,
-                    boxShadow: cardElement.style.boxShadow
-                };
-                cardElement.style.border = '1px solid #e2e8f0';
-                cardElement.style.boxShadow = 'none';
-                return style;
-            });
-
-            // 전체 컨텐츠를 하나의 캔버스로 캡처
-            setPdfProgress(10);
-
-            const pdf = new jsPDF('p', 'mm', 'a4', true);
-            const margin = 10;
-            const pageWidth = 210 - (margin * 2);
-            const pageHeight = 297 - (margin * 2);
-
-            // 모든 문제 카드 요소 선택
-            const questionCards = content.querySelectorAll('.question-card');
-            const totalQuestions = questionCards.length;
-            let currentPage = 0;
-            let processedQuestions = 0;
-
-            while (processedQuestions < totalQuestions) {
-                // 현재 페이지에 들어갈 문제들을 담을 임시 컨테이너 생성
-                const tempContainer = document.createElement('div');
-                tempContainer.style.width = content.style.width;
-                tempContainer.style.background = '#ffffff';
-                tempContainer.style.padding = '20px';
+                // 검색 범위 조정 (스케일 적용)
+                const searchStartY = Math.min(endY, contentHeight) * canvasScale;
+                const searchEndY = Math.max(startY, 0) * canvasScale;
                 
-                let currentHeight = 0;
-                let questionsInCurrentPage = 0;
-
-                // 문제들을 하나씩 추가하면서 높이 체크
-                for (let i = processedQuestions; i < totalQuestions; i++) {
-                    const card = questionCards[i] as HTMLElement;
-                    const cardClone = card.cloneNode(true) as HTMLElement;
-                    tempContainer.appendChild(cardClone);
-
-                    // 임시로 body에 추가하여 높이 계산
-                    document.body.appendChild(tempContainer);
-                    const containerHeight = tempContainer.offsetHeight;
-                    document.body.removeChild(tempContainer);
-
-                    // A4 페이지 높이를 mm에서 px로 변환 (대략적인 비율 사용)
-                    const maxHeightInPx = pageHeight * 3.779528; // 1mm = 3.779528px
-
-                    if (containerHeight > maxHeightInPx) {
-                        if (questionsInCurrentPage === 0) {
-                            // 최소한 하나의 문제는 포함
-                            questionsInCurrentPage = 1;
+                // 아래에서 위로 검색하면서 연속된 빈 라인을 찾음
+                let maxEmptyY = searchStartY;
+                let currentEmptyLines = 0;
+                
+                for (let y = searchStartY; y >= searchEndY; y--) {
+                    const imageData = ctx.getImageData(0, y, ctx.canvas.width, lineHeight);
+                    const data = imageData.data;
+                    
+                    let isEmptyLine = true;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const alpha = data[i + 3];
+                        if (alpha > 0) {
+                            const avgColor = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                            if (avgColor < 250) {
+                                isEmptyLine = false;
+                                break;
+                            }
                         }
-                        // 마지막에 추가된 문제 제거
-                        tempContainer.removeChild(cardClone);
-                        break;
                     }
 
-                    currentHeight = containerHeight;
-                    questionsInCurrentPage++;
+                    if (isEmptyLine) {
+                        currentEmptyLines++;
+                        if (currentEmptyLines >= minEmptyLines) {
+                            maxEmptyY = y;  // minEmptyLines를 더하지 않음
+                            break;
+                        }
+                    } else {
+                        currentEmptyLines = 0;
+                    }
                 }
 
-                // 현재 페이지의 문제들을 캡처
-                document.body.appendChild(tempContainer);
-                const canvas = await html2canvas(tempContainer, {
-                    scale: 2,
+                // endY를 초과하지 않도록 보정
+                const result = Math.min(maxEmptyY / canvasScale, endY);
+                console.log(`startY: ${startY}, endY: ${endY}, return: ${result}`);
+                return result;
+            };
+
+            const mainCanvas = document.createElement('canvas');
+            const mainCtx = mainCanvas.getContext('2d')!;
+            mainCanvas.width = pageWidth * canvasScale;
+            mainCanvas.height = pageHeight * canvasScale;
+            mainCtx.scale(canvasScale, canvasScale);
+            mainCtx.fillStyle = '#ffffff';
+            mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+            mainCtx.translate(margin, margin);
+
+            let currentY = 0;
+            let processedQuestions = 0;
+            const pdf = new jsPDF('p', 'pt', 'a4', true);
+
+            const currentQuestions = getCurrentPageQuestions();
+            
+            for (const question of currentQuestions) {
+                const questionElement = questionRefs.current[question.number];
+                if (!questionElement) continue;
+
+                const questionCanvas = await html2canvas(questionElement, {
+                    scale: canvasScale,
                     useCORS: true,
-                    logging: true,
-                    backgroundColor: '#ffffff',
-                    width: tempContainer.offsetWidth,
-                    height: tempContainer.offsetHeight
+                    backgroundColor: '#ffffff'
                 });
-                document.body.removeChild(tempContainer);
 
-                // 첫 페이지가 아니면 새 페이지 추가
-                if (currentPage > 0) {
+                const scale = Math.min(contentWidth / (questionCanvas.width / canvasScale), 1);
+                const scaledWidth = (questionCanvas.width / canvasScale) * scale;
+                const scaledHeight = (questionCanvas.height / canvasScale) * scale;
+
+                if (currentY + scaledHeight > contentHeight) {
+                    const cutY = findEmptySpace(mainCtx, currentY, contentHeight);
+                    
+                    const xOffset = (contentWidth - scaledWidth) / 2;
+                    const cutHeight = cutY - currentY;
+                    mainCtx.drawImage(
+                        questionCanvas,
+                        0, 0,
+                        questionCanvas.width, (cutHeight / scaledHeight) * questionCanvas.height,
+                        xOffset, currentY,
+                        scaledWidth, cutHeight
+                    );
+
+                    // 현재 페이지 추가
+                    const imgData = mainCanvas.toDataURL('image/jpeg', 1.0);
+                    pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, cutY);
                     pdf.addPage();
+
+                    // 넘치는 부분을 위한 임시 캔버스 준비
+                    const remainingCanvas = document.createElement('canvas');
+                    const remainingCtx = remainingCanvas.getContext('2d')!;
+                    remainingCanvas.width = mainCanvas.width;
+                    remainingCanvas.height = mainCanvas.height;
+                    remainingCtx.scale(canvasScale, canvasScale);  // 스케일 적용
+                    remainingCtx.fillStyle = '#ffffff';
+                    remainingCtx.fillRect(0, 0, remainingCanvas.width / canvasScale, remainingCanvas.height / canvasScale);
+                    remainingCtx.translate(margin, margin);  // 여백 적용
+
+                    // 넘치는 부분 임시 캔버스에 그리기
+                    const remainingHeight = (currentY + scaledHeight) - cutY;
+                    remainingCtx.drawImage(
+                        questionCanvas,
+                        0, (cutHeight / scaledHeight) * questionCanvas.height,  // 원본에서의 시작 위치
+                        questionCanvas.width, (remainingHeight / scaledHeight) * questionCanvas.height,  // 원본에서의 높이
+                        xOffset, 0,  // margin은 translate로 처리했으므로 0으로 설정
+                        scaledWidth, remainingHeight  // 캔버스에서의 크기
+                    );
+
+                    // 메인 캔버스 초기화 후 임시 캔버스 내용 복사
+                    mainCtx.fillStyle = '#ffffff';
+                    mainCtx.fillRect(-margin, -margin, mainCanvas.width / canvasScale, mainCanvas.height / canvasScale);
+                    mainCtx.drawImage(
+                        remainingCanvas, 
+                        0, 0,  // 원본 시작점
+                        mainCanvas.width, mainCanvas.height,  // 원본 크기
+                        -margin, -margin,  // 여백 유지
+                        mainCanvas.width / canvasScale, mainCanvas.height / canvasScale  // 대상 크기
+                    );
+
+                    // currentY를 남은 내용의 높이 + 여백으로 설정
+                    currentY = remainingHeight + margin;
+                } else {
+                    // 페이지를 넘기지 않는 경우 현재 위치에 그리기
+                    const xOffset = (contentWidth - scaledWidth) / 2;
+                    mainCtx.drawImage(
+                        questionCanvas,
+                        0, 0,
+                        questionCanvas.width, questionCanvas.height,
+                        xOffset, currentY,
+                        scaledWidth, scaledHeight
+                    );
+                    currentY += scaledHeight + 20; // 문제 사이 간격 추가
                 }
 
-                // PDF에 이미지 추가
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const imgWidth = pageWidth;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                pdf.addImage(
-                    imgData,
-                    'JPEG',
-                    margin,
-                    margin,
-                    imgWidth,
-                    Math.min(imgHeight, pageHeight)
-                );
-
-                processedQuestions += questionsInCurrentPage;
-                currentPage++;
-
-                setPdfProgress(10 + Math.round(processedQuestions * 80 / totalQuestions));
+                processedQuestions++;
+                setPdfProgress(Math.round(processedQuestions / currentQuestions.length * 100));
             }
 
-            setPdfProgress(90);
+            // 마지막 페이지 처리
+            if (currentY > 0) {
+                const imgData = mainCanvas.toDataURL('image/jpeg', 1.0);
+                // 마지막 페이지도 contentWidth와 contentHeight 비율 유지
+                const pageRatio = contentWidth / contentHeight;
+                const currentRatio = contentWidth / currentY;
+                
+                if (currentRatio > pageRatio) {
+                    // 너비에 맞춤
+                    pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, contentWidth / pageRatio);
+                } else {
+                    // 높이에 맞춤
+                    pdf.addImage(imgData, 'JPEG', margin, margin, currentY * pageRatio, currentY);
+                }
+            }
+
+            // PDF 저장
             pdf.save(`questions-${isEnglish ? 'en' : 'ko'}.pdf`);
 
-            // 원래 스타일 복원
-            content.style.cssText = originalStyle;
-            cards.forEach((card: Element, index: number) => {
-                const cardElement = card as HTMLElement;
-                Object.assign(cardElement.style, originalCardStyles[index]);
-            });
-            window.scrollTo(0, originalScrollPos);
-            document.body.style.overflow = originalOverflow;
-
-            // 숨겼던 요소들 복구
+            // PDF 저장 후 print:hidden 항목 복원
             printHiddenElements.forEach(el => {
-                (el as HTMLElement).style.removeProperty('display');
+                (el as HTMLElement).style.display = '';
             });
 
         } catch (error) {
@@ -247,6 +281,49 @@ const ExamPage = () => {
             setIsGeneratingPDF(false);
             setPdfProgress(0);
         }
+    };
+
+    // 문제 렌더링 함수 (별도 구현 필요)
+    const renderQuestion = (question: Question) => {
+        const div = document.createElement('div');
+        // 문제 내용을 HTML로 구성
+        div.innerHTML = `
+            <div class="mb-4">
+                <h2 class="text-xl font-bold mb-2">
+                    ${isEnglish ? 'Question' : '문제'} ${question.number}
+                </h2>
+                <p class="text-gray-800 mb-4">${question.question}</p>
+                <!-- 나머지 문제 내용 구성 -->
+            </div>
+        `;
+        return div;
+    };
+
+    // 텍스트 라인을 찾는 헬퍼 함수
+    const findTextLines = (element: HTMLElement) => {
+        const lines: { height: number; text: string }[] = [];
+        const walk = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+            null
+        );
+
+        let node;
+        while (node = walk.nextNode()) {
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            const rects = range.getClientRects();
+            
+            for (let i = 0; i < rects.length; i++) {
+                const rect = rects[i];
+                lines.push({
+                    height: rect.height,
+                    text: node.textContent?.substring(i * 50, (i + 1) * 50) || '' // 대략적인 라인 길이
+                });
+            }
+        }
+
+        return lines;
     };
 
     return (
@@ -267,7 +344,7 @@ const ExamPage = () => {
                                     setCurrentPage(1);
                                 }}
                                 className="border rounded p-1"
-                                disabled={isPrintMode}
+                                // disabled={isPrintMode}
                             >
                                 {[1, 5, 10, 30, 50, 200].map((num) => (
                                     <option key={num} value={num}>
@@ -300,7 +377,13 @@ const ExamPage = () => {
             <main className="p-8">
                 <div id="print-content" className="container mx-auto p-4 mt-32 print:mt-0">
                     {getCurrentPageQuestions().map((q: Question) => (
-                        <Card key={q.number} className="mb-8 question-card">
+                        <Card 
+                            key={q.number} 
+                            className="mb-8 question-card" 
+                            ref={(el) => {
+                                if (el) questionRefs.current[q.number] = el;
+                            }}
+                        >
                             <CardContent className="p-6">
                                 <div className="mb-4">
                                     <h2 className="text-xl font-bold mb-2">
