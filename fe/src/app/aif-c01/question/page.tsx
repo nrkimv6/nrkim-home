@@ -105,6 +105,7 @@ const ExamPage = () => {
 
             const pdf = await generatePDF(elements, {
                 isEnglish,
+                title: `AWS Certified AI Practitioner Certification - ExamTopics Prep (${isEnglish ? 'Eng' : 'Kor'})`,
                 onProgress: setPdfProgress
             });
 

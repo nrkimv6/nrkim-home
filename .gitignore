@@ -31,3 +31,6 @@ summaries_old.json
 !/fe/public/fonts/
 
 /test
+
+*.ts-*
+*.tsx-*
