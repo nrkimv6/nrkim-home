@@ -11,7 +11,7 @@ interface PDFGeneratorOptions {
     title?: string;
 }
 
-export const generatePDF = async (
+export const generateImagePDF = async (
     elements: HTMLElement[],
     options: PDFGeneratorOptions
 ) => {
@@ -250,7 +250,7 @@ export const generatePDF = async (
     const pdf = new jsPDF('p', 'pt', 'a4', true);
 
     // 제목을 위한 여백 추가
-    currentY += 50;
+    currentY += 30;
 
     const addPageNumber = (pageNum: number) => {
         pdf.setFont('times', 'normal');

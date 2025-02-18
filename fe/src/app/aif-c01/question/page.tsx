@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { ExternalLink } from 'lucide-react';
 import { AIFNavigation } from '@/components/aif-navigation';
 import { decrypt } from '@/lib/crypto';
-import { generatePDF } from '@/lib/pdf-generator';
+import { generateTextPDF } from '@/lib/pdf-txt-generator';
+import { generateImagePDF } from '@/lib/pdf-img-generator';
 
 interface Comment {
     user: string;
@@ -49,6 +50,10 @@ const ExamPage = () => {
         const loadQuestions = async () => {
             try {
                 const encryptedData = window.__INITIAL_QUESTIONS__;
+                if (!encryptedData) {
+                    console.error('No initial questions data found');
+                    return;
+                }
                 const data = JSON.parse(decrypt(encryptedData));
                 setQuestions(isEnglish ? data.questions_en : data.questions_ko);
             } catch (error) {
@@ -103,13 +108,15 @@ const ExamPage = () => {
                 .map(q => questionRefs.current[q.number])
                 .filter((el): el is HTMLElement => el !== undefined);
 
-            const pdf = await generatePDF(elements, {
+            const pdf = await generateTextPDF(elements, {
                 isEnglish,
                 title: `AWS Certified AI Practitioner Certification - ExamTopics Prep (${isEnglish ? 'Eng' : 'Kor'})`,
                 onProgress: setPdfProgress
             });
 
-            pdf.save(`questions-${isEnglish ? 'en' : 'ko'}.pdf`);
+            if(pdf){
+                pdf.save(`questions-${isEnglish ? 'en' : 'ko'}.pdf`);
+            }
 
             // print:hidden 항목 복원
             printHiddenElements.forEach(el => {
