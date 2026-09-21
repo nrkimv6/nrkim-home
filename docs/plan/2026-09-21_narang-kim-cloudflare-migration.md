@@ -18,7 +18,7 @@
 > pre-merge-boundary: M
 > t4t5-required: 없음
 > t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
-> 진행률: 62/75 (83%)
+> 진행률: 66/75 (88%)
 > 테스트명령: `git diff --check`
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
@@ -141,10 +141,10 @@ N/A: 상태 머신 detector seed 없음
 
 ### Phase M: Merge Handoff
 
-M. - [ ] **Phase 1 문서 변경을 main으로 넘긴다** — merge owner
-   - [ ] 구현 브랜치 diff에서 `docs/deploy.md`가 의도한 신규 문서이고 `cf-redirect/_redirects`/`cf-redirect/index.html`은 계획하지 않은 변경이 없는지 확인한다
-   - [ ] 구현 브랜치의 검증 결과가 green인 상태에서 PR 또는 동등한 merge 경로로 main에 반영한다
-   - [ ] merge 후 main에서 `docs/deploy.md`를 다시 읽어 Direct Upload 명령, DNS owner, 롤백 NS 4개가 남아 있는지 확인한다
+M. - [x] **Phase 1 문서 변경을 main으로 넘긴다** — merge owner
+   - [x] 구현 브랜치 diff에서 `docs/deploy.md`가 의도한 신규 문서이고 `cf-redirect/_redirects`/`cf-redirect/index.html`은 계획하지 않은 변경이 없는지 확인한다 — main 머지 diff = docs/deploy.md + plan 2개뿐, cf-redirect/·fe/ 변경 0건 (main be6b709/8e1614f)
+   - [x] 구현 브랜치의 검증 결과가 green인 상태에서 PR 또는 동등한 merge 경로로 main에 반영한다 — local-merge catchup_revalidation=ok(`git diff --check`), 머지 커밋 be6b709·8e1614f, push 없음
+   - [x] merge 후 main에서 `docs/deploy.md`를 다시 읽어 Direct Upload 명령, DNS owner, 롤백 NS 4개가 남아 있는지 확인한다 — main read-back: 배포 명령 1건, Cloudflare NS 표기, 예전 Porkbun NS 4개 이름 유지
 
 ### Phase O1: 현황 확인 (owner, read-only)
 
