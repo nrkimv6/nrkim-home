@@ -11,8 +11,8 @@
 > expand-state: apply_complete
 > expanded-at-main: 7865c36cd36c182169f48b116d87802c6944e008
 > surface 분류: 공통 정책
-> branch:
-> worktree:
+> branch: impl/narang-kim-cloudflare-migration
+> worktree: D:\work\project\service\nrkim-home\.worktrees\impl\narang-kim-cf
 > worktree-owner:
 > pre-merge-boundary: M
 > t4t5-required: 없음
@@ -115,27 +115,27 @@ N/A: 상태 머신 detector seed 없음
 ### Phase 0: 구현 격리 준비
 
 0. - [ ] **구현 owner가 사용할 격리 상태를 문서에 고정** — 구현 진입 게이트
-   - [ ] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 구현 시작 직전에 `> branch:` 값을 실제 구현 브랜치로 채우고 현재 main HEAD에서 분기됐는지 read-back한다
+   - [x] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 구현 시작 직전에 `> branch:` 값을 실제 구현 브랜치로 채우고 현재 main HEAD에서 분기됐는지 read-back한다
    - [ ] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: ChatGPT Web 경로라면 `web/narang-kim-cloudflare-migration` 브랜치를 사용하고 `> worktree:`/ `> worktree-owner:`는 로컬 linked worktree 미사용 상태로 기록한다
-   - [ ] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 로컬 `/implement` 경로를 사용할 경우 기존 worktree owner 계약에 따라 worktree cwd를 별도로 확인하고 Web 브랜치 계약과 혼용하지 않는다
+   - [x] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 로컬 `/implement` 경로를 사용할 경우 기존 worktree owner 계약에 따라 worktree cwd를 별도로 확인하고 Web 브랜치 계약과 혼용하지 않는다
 
 ### Phase 1: 배포 runbook 문서화 (pre-merge)
 
-1. - [ ] **Cloudflare Pages Direct Upload 배포 runbook을 생성**
-   - [ ] `docs/deploy.md`: 파일을 신규 생성하고 현재 운영 대상이 Cloudflare Pages 프로젝트 `nrkim-home`의 Direct Upload임을 적는다
-   - [ ] `docs/deploy.md`: 배포 명령 `wrangler pages deploy cf-redirect --project-name nrkim-home --branch main`을 한 개의 실행 명령으로 기록한다
-   - [ ] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/_redirects`의 302 target을 수정해야 한다고 기록한다
-   - [ ] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/index.html`의 meta refresh와 fallback link도 같은 URL로 수정해야 한다고 기록한다
-   - [ ] `docs/deploy.md`: Render rollback을 유지하는 7일 동안에는 `fe/next.config.ts`의 root redirect destination도 같은 artifact URL로 동기화하고 Render 제거 후 이 동기화 의무가 끝난다고 기록한다
-   - [ ] `docs/deploy.md`: `narang.kim`은 Porkbun 등록 도메인이며 cutover 이후 DNS zone owner는 Cloudflare라고 기록한다
-   - [ ] `docs/deploy.md`: 롤백용 Porkbun 기본 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)와 Render 7일 유지 원칙을 기록한다
+1. - [x] **Cloudflare Pages Direct Upload 배포 runbook을 생성**
+   - [x] `docs/deploy.md`: 파일을 신규 생성하고 현재 운영 대상이 Cloudflare Pages 프로젝트 `nrkim-home`의 Direct Upload임을 적는다
+   - [x] `docs/deploy.md`: 배포 명령 `wrangler pages deploy cf-redirect --project-name nrkim-home --branch main`을 한 개의 실행 명령으로 기록한다
+   - [x] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/_redirects`의 302 target을 수정해야 한다고 기록한다
+   - [x] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/index.html`의 meta refresh와 fallback link도 같은 URL로 수정해야 한다고 기록한다
+   - [x] `docs/deploy.md`: Render rollback을 유지하는 7일 동안에는 `fe/next.config.ts`의 root redirect destination도 같은 artifact URL로 동기화하고 Render 제거 후 이 동기화 의무가 끝난다고 기록한다
+   - [x] `docs/deploy.md`: `narang.kim`은 Porkbun 등록 도메인이며 cutover 이후 DNS zone owner는 Cloudflare라고 기록한다
+   - [x] `docs/deploy.md`: 롤백용 Porkbun 기본 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)와 Render 7일 유지 원칙을 기록한다
 
-2. - [ ] **정적 리다이렉트 계약과 커스텀 도메인 동작을 문서화**
-   - [ ] `cf-redirect/_redirects`: 현재 root 규칙이 artifact URL로 302를 반환하는지 read-back하고 `docs/deploy.md`의 목적지와 일치시킨다
-   - [ ] `cf-redirect/index.html`: meta refresh URL과 fallback anchor URL이 `_redirects` target과 같은지 read-back한다
-   - [ ] `fe/next.config.ts`: Render rollback 기간의 root `redirects()` destination이 현재 artifact URL과 일치하는지 read-back한다
-   - [ ] `docs/deploy.md`: `narang.kim`과 `www.narang.kim`을 동일 Pages 프로젝트의 custom domain으로 연결하므로 hostname별 별도 `_redirects` 규칙은 필요 없다고 기록한다
-   - [ ] `docs/deploy.md`: `pages.dev`와 custom domain 모두 동일 정적 배포를 사용하고 custom domain activation/certificate는 Cloudflare가 관리한다고 기록한다
+2. - [x] **정적 리다이렉트 계약과 커스텀 도메인 동작을 문서화**
+   - [x] `cf-redirect/_redirects`: 현재 root 규칙이 artifact URL로 302를 반환하는지 read-back하고 `docs/deploy.md`의 목적지와 일치시킨다
+   - [x] `cf-redirect/index.html`: meta refresh URL과 fallback anchor URL이 `_redirects` target과 같은지 read-back한다
+   - [x] `fe/next.config.ts`: Render rollback 기간의 root `redirects()` destination이 현재 artifact URL과 일치하는지 read-back한다
+   - [x] `docs/deploy.md`: `narang.kim`과 `www.narang.kim`을 동일 Pages 프로젝트의 custom domain으로 연결하므로 hostname별 별도 `_redirects` 규칙은 필요 없다고 기록한다
+   - [x] `docs/deploy.md`: `pages.dev`와 custom domain 모두 동일 정적 배포를 사용하고 custom domain activation/certificate는 Cloudflare가 관리한다고 기록한다
 
 ### Phase M: Merge Handoff
 
