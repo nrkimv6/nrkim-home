@@ -5,6 +5,7 @@
 > 기준커밋: 5d75229
 > 대상 프로젝트: nrkim-home
 > 상태: 아카이브대기
+> 머지커밋: 4344edad4aff63b05a33f4207f47958dc714c4c3
 > 반영일시: 2026-09-22 03:40
 > review-verdict: keep
 > review-state: apply_complete
