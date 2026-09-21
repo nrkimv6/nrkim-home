@@ -4,7 +4,8 @@
 > 작성일시: 2026-09-21 22:30
 > 기준커밋: 5d75229
 > 대상 프로젝트: nrkim-home
-> 상태: 검토완료
+> 상태: 구현중
+> 비고: O1-O4 완료, O4-1(8.8.8.8 캐시)/O5-1(7일 관찰)/Z 대기
 > review-verdict: keep
 > review-state: apply_complete
 > reviewed-at: 2026-09-21
