@@ -19,8 +19,8 @@
   },
   "expansion": {
     "expand_commit_sha": null,
-    "expand_parent_sha": "50f6aa92b3e40c7b2d4b2ab1eef5cfba6249c18b",
-    "plan_blob_sha_after": "0cbd07c813257187fe5e9d3ad5155e867a75a664",
+    "expand_parent_sha": "0a65b2a6a005ac633b4c1248beed27a379a05c2d",
+    "plan_blob_sha_after": "df96a57242915bd6b9d96e0895ca0b5d88e7fc8b",
     "expanded_at_main": "7865c36cd36c182169f48b116d87802c6944e008",
     "baseline_main_sha": "5d752297feaef7f49a2dc698841fc00c491f35af",
     "drift_mode": "baseline_compare",

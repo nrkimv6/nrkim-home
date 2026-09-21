@@ -55,7 +55,7 @@ Cloudflare Pages 프로젝트 `nrkim-home`(Direct Upload, `cf-redirect/` 정적 
 - DNS 레코드는 Render용을 제외하면 사용하지 않는다 → Cloudflare zone에는 Render 레코드를 가져오지 않는다(자동 import된 Render용 A/CNAME 삭제, Pages 연결이 대체). 세부 판단은 Claude에게 위임.
 - Registry DNSSEC 0 records(사용자 확인).
 - Claude가 콘솔 등으로 자동 처리할 수 있는 단계는 계획서에 표기한다(아래 "자동화 가능 범위").
-- `nrkim-home`을 wtools `projects.json`에 등록한다(완료 — wtools `47ae64314`).
+- ChatGPT Web 경로는 wtools 로컬 project registry를 전제로 하지 않는다. 현재 `nrkimv6/wtools-setting:.claude/projects.json` read-back에는 `nrkim-home` 항목이 없으므로 "등록 완료"로 취급하지 않으며, 로컬 `/implement` 경로를 선택할 때만 별도 precondition으로 등록 여부를 다시 확인한다.
 
 ## 검토 옵션/제안 (미승인)
 
