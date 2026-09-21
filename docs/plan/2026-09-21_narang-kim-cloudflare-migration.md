@@ -17,7 +17,7 @@
 > pre-merge-boundary: M
 > t4t5-required: 없음
 > t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
-> 진행률: 4/73 (5%)
+> 진행률: 4/75 (5%)
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
 ---
@@ -126,12 +126,14 @@ N/A: 상태 머신 detector seed 없음
    - [ ] `docs/deploy.md`: 배포 명령 `wrangler pages deploy cf-redirect --project-name nrkim-home --branch main`을 한 개의 실행 명령으로 기록한다
    - [ ] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/_redirects`의 302 target을 수정해야 한다고 기록한다
    - [ ] `docs/deploy.md`: 리다이렉트 목적지를 바꿀 때 `cf-redirect/index.html`의 meta refresh와 fallback link도 같은 URL로 수정해야 한다고 기록한다
+   - [ ] `docs/deploy.md`: Render rollback을 유지하는 7일 동안에는 `fe/next.config.ts`의 root redirect destination도 같은 artifact URL로 동기화하고 Render 제거 후 이 동기화 의무가 끝난다고 기록한다
    - [ ] `docs/deploy.md`: `narang.kim`은 Porkbun 등록 도메인이며 cutover 이후 DNS zone owner는 Cloudflare라고 기록한다
    - [ ] `docs/deploy.md`: 롤백용 Porkbun 기본 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)와 Render 7일 유지 원칙을 기록한다
 
 2. - [ ] **정적 리다이렉트 계약과 커스텀 도메인 동작을 문서화**
    - [ ] `cf-redirect/_redirects`: 현재 root 규칙이 artifact URL로 302를 반환하는지 read-back하고 `docs/deploy.md`의 목적지와 일치시킨다
    - [ ] `cf-redirect/index.html`: meta refresh URL과 fallback anchor URL이 `_redirects` target과 같은지 read-back한다
+   - [ ] `fe/next.config.ts`: Render rollback 기간의 root `redirects()` destination이 현재 artifact URL과 일치하는지 read-back한다
    - [ ] `docs/deploy.md`: `narang.kim`과 `www.narang.kim`을 동일 Pages 프로젝트의 custom domain으로 연결하므로 hostname별 별도 `_redirects` 규칙은 필요 없다고 기록한다
    - [ ] `docs/deploy.md`: `pages.dev`와 custom domain 모두 동일 정적 배포를 사용하고 custom domain activation/certificate는 Cloudflare가 관리한다고 기록한다
 
