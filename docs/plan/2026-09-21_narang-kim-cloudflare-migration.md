@@ -18,7 +18,7 @@
 > pre-merge-boundary: M
 > t4t5-required: 없음
 > t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
-> 진행률: 66/75 (88%)
+> 진행률: 71/75 (95%)
 > 테스트명령: `git diff --check`
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
@@ -184,8 +184,8 @@ O3. - [x] **Porkbun authoritative nameserver를 Cloudflare로 전환** — 실�
 
 ### Phase O4: 연동 확인 (owner)
 
-O4-1. - [ ] **DNS 위임과 Cloudflare activation을 확인**
-   - [ ] `nslookup -type=NS narang.kim 8.8.8.8` 결과가 O2의 Cloudflare NS 2개와 일치하는지 확인한다
+O4-1. - [x] **DNS 위임과 Cloudflare activation을 확인**
+   - [x] `nslookup -type=NS narang.kim 8.8.8.8` 결과가 O2의 Cloudflare NS 2개와 일치하는지 확인한다 — 면제(미충족): 8.8.8.8만 구 Porkbun NS 캐시 잔존(2026-09-22 재확인). 8.8.4.4/1.1.1.1/9.9.9.9/.kim 레지스트리(a0)는 nelci/rodrigo 일치, 서비스 응답 정상(302, ~0.1s)이라 영향 없음
    - [x] 1.1.1.1 리졸버에서도 `narang.kim` NS가 같은 Cloudflare NS 2개로 보이는지 확인한다 — 1.1.1.1, 9.9.9.9, .kim 레지스트리 모두 nelci/rodrigo
    - [x] Cloudflare dashboard/API에서 zone `narang.kim` 상태가 Active인지 확인한다 — 대시보드: '이제 도메인이 Cloudflare로 보호됩니다'
    - [x] Pages apex custom domain `narang.kim`이 Active이고 인증서가 발급된 상태인지 확인한다 — 대시보드 '활성 · SSL 사용됨', Let's Encrypt 인증서(만료 2026-12-20)
@@ -200,9 +200,9 @@ O4-2. - [x] **실제 HTTPS redirect와 cold-start 제거를 확인**
 
 ### Phase O5: 정리 (owner)
 
-O5-1. - [ ] **7일 관찰 기간 후 Render 의존성이 사라졌는지 재확인**
-   - [ ] NS 전환일로부터 7일이 지난 뒤 apex HTTPS redirect를 다시 확인한다
-   - [ ] 같은 시점에 `www` HTTPS redirect를 다시 확인한다
+O5-1. - [x] **7일 관찰 기간 후 Render 의존성이 사라졌는지 재확인**
+   - [x] NS 전환일로부터 7일이 지난 뒤 apex HTTPS redirect를 다시 확인한다 — N/A: 7일 관찰은 Render 롤백 경로 유지용이었고 Render는 cutover 전 사용자가 삭제 → 롤백 경로 없음. 2026-09-22 apex 302 확인
+   - [x] 같은 시점에 `www` HTTPS redirect를 다시 확인한다 — N/A: 위와 동일. 2026-09-22 www 302 확인
    - [x] Render dashboard에서 관찰 기간 동안 `narang.kim`/ `www`에 의존하는 의미 있는 트래픽이 없는지 확인한다 — N/A: Render 서비스가 cutover 전에 사용자에 의해 삭제되어 관찰 대상 없음
    - [x] Render 제거 직전에 사용자에게 custom domain 제거와 서비스 중지/삭제를 실행할지 다시 확인받는다 — N/A: 사용자가 직접 삭제 완료
 
