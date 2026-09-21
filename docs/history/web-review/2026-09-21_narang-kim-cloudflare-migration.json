@@ -9,7 +9,7 @@
   "resolved_filename": "2026-09-21_narang-kim-cloudflare-migration.md",
   "review": {
     "disposition": "keep",
-    "apply_commit_sha": null,
+    "apply_commit_sha": "b1d1d91fdeac15c1b36e19537f3c70732a9c7330",
     "apply_blob_sha": "ff948b1fa5422c5a222c4397cbf82ace399a9d91",
     "publish_ledger_paths": [],
     "publish_ledger_blob_shas": [],
