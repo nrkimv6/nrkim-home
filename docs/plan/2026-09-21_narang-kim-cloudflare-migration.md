@@ -17,7 +17,8 @@
 > pre-merge-boundary: M
 > t4t5-required: 없음
 > t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
-> 진행률: 4/75 (5%)
+> 진행률: 62/75 (83%)
+> 테스트명령: `git diff --check`
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
 ---
@@ -114,9 +115,9 @@ N/A: 상태 머신 detector seed 없음
 
 ### Phase 0: 구현 격리 준비
 
-0. - [ ] **구현 owner가 사용할 격리 상태를 문서에 고정** — 구현 진입 게이트
+0. - [x] **구현 owner가 사용할 격리 상태를 문서에 고정** — 구현 진입 게이트
    - [x] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 구현 시작 직전에 `> branch:` 값을 실제 구현 브랜치로 채우고 현재 main HEAD에서 분기됐는지 read-back한다
-   - [ ] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: ChatGPT Web 경로라면 `web/narang-kim-cloudflare-migration` 브랜치를 사용하고 `> worktree:`/ `> worktree-owner:`는 로컬 linked worktree 미사용 상태로 기록한다
+   - [x] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: ChatGPT Web 경로라면 `web/narang-kim-cloudflare-migration` 브랜치를 사용하고 `> worktree:`/ `> worktree-owner:`는 로컬 linked worktree 미사용 상태로 기록한다 — N/A: 로컬 /run-plan 경로 사용(impl/narang-kim-cloudflare-migration)
    - [x] `docs/plan/2026-09-21_narang-kim-cloudflare-migration.md`: 로컬 `/implement` 경로를 사용할 경우 기존 worktree owner 계약에 따라 worktree cwd를 별도로 확인하고 Web 브랜치 계약과 혼용하지 않는다
 
 ### Phase 1: 배포 runbook 문서화 (pre-merge)
@@ -146,70 +147,70 @@ M. - [ ] **Phase 1 문서 변경을 main으로 넘긴다** — merge owner
 
 ### Phase O1: 현황 확인 (owner, read-only)
 
-O1. - [ ] **네임서버 전환 전 계정·DNS 전제조건을 확정**
+O1. - [x] **네임서버 전환 전 계정·DNS 전제조건을 확정**
    - [x] 공용 DNS와 사용자 확인을 대조해 Render용 외 사용 중인 DNS 레코드와 MX/TXT가 없음을 확인했다
    - [x] Porkbun Registry DNSSEC가 0 records임을 확인해 NS 변경 전 DS 해제가 불필요함을 확정했다
    - [x] Porkbun transfer lock은 registrar transfer용이며 nameserver 변경 절차에는 unlock 단계가 없음을 공식 도움말 기준으로 확인했다
-   - [ ] Cloudflare 자동화 경로를 API 토큰(Zone:Edit, DNS:Edit, Pages:Edit) 또는 로그인된 브라우저 중 하나로 선택하고 자격 증명은 문서에 저장하지 않는다
-   - [ ] Porkbun 자동화 경로를 API(`API Access` 활성화 포함) 또는 로그인된 브라우저 중 하나로 선택하고 자격 증명은 문서에 저장하지 않는다
+   - [x] Cloudflare 자동화 경로를 API 토큰(Zone:Edit, DNS:Edit, Pages:Edit) 또는 로그인된 브라우저 중 하나로 선택하고 자격 증명은 문서에 저장하지 않는다 — 로그인된 브라우저(Claude in Chrome, orangepie) 선택, 자격 증명 미기록
+   - [x] Porkbun 자동화 경로를 API(`API Access` 활성화 포함) 또는 로그인된 브라우저 중 하나로 선택하고 자격 증명은 문서에 저장하지 않는다 — 로그인된 브라우저(Claude in Chrome) 선택, 자격 증명 미기록
 
 ### Phase O2: Cloudflare 사전 구성 (owner, 새 배포 준비)
 
-O2-1. - [ ] **Cloudflare zone을 cutover 전 상태로 준비**
-   - [ ] Cloudflare에서 `narang.kim` zone을 Free 플랜으로 추가한다
-   - [ ] Cloudflare가 배정한 authoritative nameserver 2개를 정확한 FQDN으로 read-back해 운영 기록에 남긴다
-   - [ ] DNS Records에서 자동 스캔 결과를 읽고 Render apex A `216.24.57.1`과 `www` CNAME 외 레코드가 나타나면 O3로 진행하지 않고 사용자 확인을 받는다
-   - [ ] 확인된 Render apex A `216.24.57.1`을 Cloudflare zone에서 삭제한다
-   - [ ] 확인된 `www` CNAME `nrkim-home.onrender.com`을 Cloudflare zone에서 삭제한다
-   - [ ] zone이 Pending인 동안 production-ready로 간주하지 않고 O3 실행 전까지 현재 Porkbun NS 위임을 유지한다
+O2-1. - [x] **Cloudflare zone을 cutover 전 상태로 준비**
+   - [x] Cloudflare에서 `narang.kim` zone을 Free 플랜으로 추가한다 — Free 플랜 확인(대시보드 plan 배지 free)
+   - [x] Cloudflare가 배정한 authoritative nameserver 2개를 정확한 FQDN으로 read-back해 운영 기록에 남긴다 — nelci.ns.cloudflare.com, rodrigo.ns.cloudflare.com (docs/deploy.md 기록)
+   - [x] DNS Records에서 자동 스캔 결과를 읽고 Render apex A `216.24.57.1`과 `www` CNAME 외 레코드가 나타나면 O3로 진행하지 않고 사용자 확인을 받는다 — 스캔 결과 A 1개(216.24.57.1)+CNAME 1개(www→nrkim-home.onrender.com)뿐, 추가 레코드 없음
+   - [x] 확인된 Render apex A `216.24.57.1`을 Cloudflare zone에서 삭제한다 — 삭제 확인 창에서 대상 값 확인 후 삭제
+   - [x] 확인된 `www` CNAME `nrkim-home.onrender.com`을 Cloudflare zone에서 삭제한다 — 삭제 확인 창에서 대상 값 확인 후 삭제
+   - [x] zone이 Pending인 동안 production-ready로 간주하지 않고 O3 실행 전까지 현재 Porkbun NS 위임을 유지한다 — NS 전환 전까지 Porkbun NS 유지 후 O3 수행
 
-O2-2. - [ ] **Pages custom domain을 가능한 범위까지 사전 등록**
-   - [ ] `https://nrkim-home.pages.dev/`에 HEAD 요청을 보내 302와 artifact `Location`을 확인한다
-   - [ ] Pages 프로젝트 `nrkim-home`에 apex custom domain `narang.kim`을 추가한다
-   - [ ] Pages 프로젝트 `nrkim-home`에 custom domain `www.narang.kim`을 추가한다
-   - [ ] 두 custom domain의 상태가 Active가 아니면 Pending/Verifying 상태와 사유를 read-back해 기록한다
-   - [ ] 두 custom domain이 최소한 Pages 프로젝트에 등록된 상태임을 확인한 뒤에만 O3 사용자 확인 단계로 넘긴다
+O2-2. - [x] **Pages custom domain을 가능한 범위까지 사전 등록**
+   - [x] `https://nrkim-home.pages.dev/`에 HEAD 요청을 보내 302와 artifact `Location`을 확인한다 — 302 → https://claude.ai/artifact/4Hhdi2DzQBaDLnsGzQ7aqe (2026-09-22 재확인)
+   - [x] Pages 프로젝트 `nrkim-home`에 apex custom domain `narang.kim`을 추가한다 — Pages는 DNS가 Cloudflare로 전환된 뒤에만 apex 추가를 허용해 NS 전환 이후에 등록(순서 변경). CNAME @→nrkim-home.pages.dev 자동 생성
+   - [x] Pages 프로젝트 `nrkim-home`에 custom domain `www.narang.kim`을 추가한다 — CNAME www→nrkim-home.pages.dev 자동 생성
+   - [x] 두 custom domain의 상태가 Active가 아니면 Pending/Verifying 상태와 사유를 read-back해 기록한다 — 초기화 중/확인 중을 거쳐 최종 활성 확인
+   - [x] 두 custom domain이 최소한 Pages 프로젝트에 등록된 상태임을 확인한 뒤에만 O3 사용자 확인 단계로 넘긴다 — 등록 완료(활성 · SSL 사용됨)
 
 ### Phase O3: 네임서버 전환 (owner)
 
-O3. - [ ] **Porkbun authoritative nameserver를 Cloudflare로 전환** — 실행 직전 사용자 확인 필수
+O3. - [x] **Porkbun authoritative nameserver를 Cloudflare로 전환** — 실행 직전 사용자 확인 필수
    - [x] Porkbun DNS 레코드 TTL 사전 하향은 생략한다 — 이번 작업은 parent NS delegation 변경이고 기존 zone은 Render A/CNAME뿐이므로 O4 검증과 NS 원복을 안전장치로 사용한다
-   - [ ] O2에서 기록한 Cloudflare NS 2개를 다시 read-back해 O3 입력값과 문자 단위로 일치하는지 확인한다
-   - [ ] 사용자에게 지금 NS 전환을 실행할지 명시적으로 확인받고 승인 전에는 Porkbun 설정을 변경하지 않는다
-   - [ ] Porkbun에서 기존 NS 4개를 제거하고 O2의 Cloudflare NS 2개로 교체한다
-   - [ ] 변경 직후 Porkbun 화면/API read-back에서 설정된 NS 2개가 O2 값과 일치하는지 확인한다
-   - [ ] 전환 시각과 원복 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)를 운영 기록에 남긴다
+   - [x] O2에서 기록한 Cloudflare NS 2개를 다시 read-back해 O3 입력값과 문자 단위로 일치하는지 확인한다 — Porkbun 저장 후 화면 read-back = nelci/rodrigo 일치
+   - [x] 사용자에게 지금 NS 전환을 실행할지 명시적으로 확인받고 승인 전에는 Porkbun 설정을 변경하지 않는다 — 사용자가 대화에서 명시 지시('네임서버를 옮기든 어쩌든 cloudflare연결하라고'), Render는 사용자가 이미 삭제한 상태
+   - [x] Porkbun에서 기존 NS 4개를 제거하고 O2의 Cloudflare NS 2개로 교체한다 — Porkbun nsDrawer에서 교체 저장
+   - [x] 변경 직후 Porkbun 화면/API read-back에서 설정된 NS 2개가 O2 값과 일치하는지 확인한다 — 새로고침 후 NAMESERVERS = nelci/rodrigo; .kim 레지스트리(a0/b0) 조회도 nelci/rodrigo
+   - [x] 전환 시각과 원복 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)를 운영 기록에 남긴다 — docs/deploy.md에 기록. 전환 시각 2026-09-22 KST 새벽(UTC 2026-09-21)
 
 ### Phase O4: 연동 확인 (owner)
 
 O4-1. - [ ] **DNS 위임과 Cloudflare activation을 확인**
    - [ ] `nslookup -type=NS narang.kim 8.8.8.8` 결과가 O2의 Cloudflare NS 2개와 일치하는지 확인한다
-   - [ ] 1.1.1.1 리졸버에서도 `narang.kim` NS가 같은 Cloudflare NS 2개로 보이는지 확인한다
-   - [ ] Cloudflare dashboard/API에서 zone `narang.kim` 상태가 Active인지 확인한다
-   - [ ] Pages apex custom domain `narang.kim`이 Active이고 인증서가 발급된 상태인지 확인한다
-   - [ ] Pages custom domain `www.narang.kim`이 Active이고 인증서가 발급된 상태인지 확인한다
+   - [x] 1.1.1.1 리졸버에서도 `narang.kim` NS가 같은 Cloudflare NS 2개로 보이는지 확인한다 — 1.1.1.1, 9.9.9.9, .kim 레지스트리 모두 nelci/rodrigo
+   - [x] Cloudflare dashboard/API에서 zone `narang.kim` 상태가 Active인지 확인한다 — 대시보드: '이제 도메인이 Cloudflare로 보호됩니다'
+   - [x] Pages apex custom domain `narang.kim`이 Active이고 인증서가 발급된 상태인지 확인한다 — 대시보드 '활성 · SSL 사용됨', Let's Encrypt 인증서(만료 2026-12-20)
+   - [x] Pages custom domain `www.narang.kim`이 Active이고 인증서가 발급된 상태인지 확인한다 — 대시보드 '활성 · SSL 사용됨', Google Trust Services 인증서(만료 2026-12-20)
 
-O4-2. - [ ] **실제 HTTPS redirect와 cold-start 제거를 확인**
-   - [ ] `curl -sI https://narang.kim/` 결과가 301 또는 302이고 `Location`이 artifact URL인지 확인한다
-   - [ ] `curl -sI https://www.narang.kim/` 결과가 301 또는 302이고 `Location`이 같은 artifact URL인지 확인한다
-   - [ ] apex에 연속 3회 요청해 각 요청의 `time_total`을 기록하고 Render의 약 50초 cold-start 패턴이 재현되지 않는지 확인한다
-   - [ ] `www`에도 연속 3회 요청해 동일하게 cold-start 패턴이 재현되지 않는지 확인한다
-   - [ ] Cloudflare NS 위임이 관측된 뒤 zone/custom domain/HTTPS 중 하나라도 실패하면 Porkbun NS를 원복하고, 모두 통과하면 rollback 미실행으로 기록한다
+O4-2. - [x] **실제 HTTPS redirect와 cold-start 제거를 확인**
+   - [x] `curl -sI https://narang.kim/` 결과가 301 또는 302이고 `Location`이 artifact URL인지 확인한다 — 302, Location=artifact URL
+   - [x] `curl -sI https://www.narang.kim/` 결과가 301 또는 302이고 `Location`이 같은 artifact URL인지 확인한다 — 302, Location=artifact URL
+   - [x] apex에 연속 3회 요청해 각 요청의 `time_total`을 기록하고 Render의 약 50초 cold-start 패턴이 재현되지 않는지 확인한다 — 0.077/0.111/0.111s — cold-start 없음
+   - [x] `www`에도 연속 3회 요청해 동일하게 cold-start 패턴이 재현되지 않는지 확인한다 — 0.164/0.117/0.128s — cold-start 없음
+   - [x] Cloudflare NS 위임이 관측된 뒤 zone/custom domain/HTTPS 중 하나라도 실패하면 Porkbun NS를 원복하고, 모두 통과하면 rollback 미실행으로 기록한다 — 전부 통과 → rollback 미실행
 
 ### Phase O5: 정리 (owner)
 
 O5-1. - [ ] **7일 관찰 기간 후 Render 의존성이 사라졌는지 재확인**
    - [ ] NS 전환일로부터 7일이 지난 뒤 apex HTTPS redirect를 다시 확인한다
    - [ ] 같은 시점에 `www` HTTPS redirect를 다시 확인한다
-   - [ ] Render dashboard에서 관찰 기간 동안 `narang.kim`/ `www`에 의존하는 의미 있는 트래픽이 없는지 확인한다
-   - [ ] Render 제거 직전에 사용자에게 custom domain 제거와 서비스 중지/삭제를 실행할지 다시 확인받는다
+   - [x] Render dashboard에서 관찰 기간 동안 `narang.kim`/ `www`에 의존하는 의미 있는 트래픽이 없는지 확인한다 — N/A: Render 서비스가 cutover 전에 사용자에 의해 삭제되어 관찰 대상 없음
+   - [x] Render 제거 직전에 사용자에게 custom domain 제거와 서비스 중지/삭제를 실행할지 다시 확인받는다 — N/A: 사용자가 직접 삭제 완료
 
-O5-2. - [ ] **Render 서비스와 최종 runbook 상태를 정리**
-   - [ ] 사용자 승인 후 Render 서비스에서 `narang.kim` custom domain을 제거한다
-   - [ ] 사용자 승인 후 Render 서비스에서 `www.narang.kim` custom domain을 제거한다
-   - [ ] 사용자 승인 범위에 따라 Render 서비스를 중지하거나 삭제한다
-   - [ ] `docs/deploy.md`: 최종 DNS owner가 Cloudflare이고 두 Pages custom domain이 Active임을 반영한다
-   - [ ] `docs/deploy.md`: Render 제거일과 제거 후에는 Porkbun NS 원복만으로 Render rollback이 성립하지 않는다는 점을 기록한다
+O5-2. - [x] **Render 서비스와 최종 runbook 상태를 정리**
+   - [x] 사용자 승인 후 Render 서비스에서 `narang.kim` custom domain을 제거한다 — Render 서비스 자체를 사용자가 cutover 전에 삭제(사용자 진술) → custom domain 함께 소멸
+   - [x] 사용자 승인 후 Render 서비스에서 `www.narang.kim` custom domain을 제거한다 — 위와 동일
+   - [x] 사용자 승인 범위에 따라 Render 서비스를 중지하거나 삭제한다 — 사용자가 직접 삭제 완료(순서 앞당김: 계획서의 7일 유지 없이 삭제됨)
+   - [x] `docs/deploy.md`: 최종 DNS owner가 Cloudflare이고 두 Pages custom domain이 Active임을 반영한다 — docs/deploy.md 반영
+   - [x] `docs/deploy.md`: Render 제거일과 제거 후에는 Porkbun NS 원복만으로 Render rollback이 성립하지 않는다는 점을 기록한다 — docs/deploy.md 반영(Render는 cutover 이전 삭제, NS 원복으로 Render 복귀 불가)
 
 ### Phase Z: Post-Merge Cleanup
 
