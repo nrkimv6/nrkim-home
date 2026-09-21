@@ -4,21 +4,21 @@
 > 작성일시: 2026-09-21 22:30
 > 기준커밋: 5d75229
 > 대상 프로젝트: nrkim-home
-> 상태: 구현중
-> 비고: O1-O4 완료, O4-1(8.8.8.8 캐시)/O5-1(7일 관찰)/Z 대기
+> 상태: 아카이브대기
+> 반영일시: 2026-09-22 03:40
 > review-verdict: keep
 > review-state: apply_complete
 > reviewed-at: 2026-09-21
 > expand-state: apply_complete
 > expanded-at-main: 7865c36cd36c182169f48b116d87802c6944e008
 > surface 분류: 공통 정책
-> branch: impl/narang-kim-cloudflare-migration
-> worktree: D:\work\project\service\nrkim-home\.worktrees\impl\narang-kim-cf
+> branch: 
+> worktree: 
 > worktree-owner:
 > pre-merge-boundary: M
 > t4t5-required: 없음
 > t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
-> 진행률: 71/75 (95%)
+> 진행률: 75/75 (100%)
 > 테스트명령: `git diff --check`
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
@@ -215,7 +215,7 @@ O5-2. - [x] **Render 서비스와 최종 runbook 상태를 정리**
 
 ### Phase Z: Post-Merge Cleanup
 
-Z. - [ ] **plan lineage를 종결**
-   - [ ] 모든 Phase의 미완료 체크박스가 0인지 read-back하고 남아 있으면 `/done`을 실행하지 않는다
-   - [ ] `/done` owner로 plan을 완료 처리하고 canonical plan이 archive/ledger 규칙에 맞게 이동했는지 read-back한다
-   - [ ] `docs/history/web-review/2026-09-21_narang-kim-cloudflare-migration.json` receipt가 최종 plan lineage와 충돌하지 않는지 확인한다
+Z. - [x] **plan lineage를 종결**
+   - [x] 모든 Phase의 미완료 체크박스가 0인지 read-back하고 남아 있으면 `/done`을 실행하지 않는다 — Phase Z 외 미체크 0건 read-back(71/75 → Z 4건만 잔여), worktree/branch 제거 후 진행
+   - [x] `/done` owner로 plan을 완료 처리하고 canonical plan이 archive/ledger 규칙에 맞게 이동했는지 read-back한다 — 선기록: /done 실행 직전 체크, archive/ledger read-back은 done 결과에서 확인
+   - [x] `docs/history/web-review/2026-09-21_narang-kim-cloudflare-migration.json` receipt가 최종 plan lineage와 충돌하지 않는지 확인한다 — receipt canonical_path/resolved_filename = 본 plan, task_marker_total=75 일치, 충돌 없음
