@@ -4,15 +4,18 @@
 > 작성일시: 2026-09-21 22:30
 > 기준커밋: 5d75229
 > 대상 프로젝트: nrkim-home
-> 상태: 초안
+> 상태: 검토완료
+> review-verdict: keep
+> review-state: apply_complete
+> reviewed-at: 2026-09-21
 > surface 분류: 공통 정책
 > branch:
 > worktree:
 > worktree-owner:
 > pre-merge-boundary: M
 > t4t5-required: 없음
-> t4t5-exempt: T4=NO_APP_CODE(정적 리다이렉트 + DNS 운영 작업), T5-http=NO_APP_CODE(정적 리다이렉트 + DNS 운영 작업), T5-http_live=NO_APP_CODE(정적 리다이렉트 + DNS 운영 작업, 검증은 Phase O4 curl 체크리스트)
-> 진행률: 2/35 (6%)
+> t4t5-exempt: T4=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트만 변경), T5-http=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 앱 HTTP 코드 변경 없음), T5-http_live=NO_APP_CODE(cf-redirect/_redirects + cf-redirect/index.html 정적 리다이렉트이며 live 검증은 Phase O4 curl), T4-operational-merge=NO_RUNNER_MERGE_CHANGE(cf-redirect/_redirects + cf-redirect/index.html만 대상이며 plan-runner merge policy/runtime 변경 없음)
+> 진행률: 4/35 (11%)
 > 요약: Render 무료 플랜 슬립(콜드스타트 ~50초)으로 `narang.kim` 접속이 불안정하다 — 도메인을 Cloudflare로 옮겨 기존 링크 `narang.kim`이 슬립 없이 artifact로 리다이렉트되게 한다.
 
 ---
@@ -39,7 +42,7 @@ Cloudflare Pages 프로젝트 `nrkim-home`(Direct Upload, `cf-redirect/` 정적 
 사용자 초안(새 배포 → 네임서버 변경 → 연동 확인 → 배포순서 정리)을 다음과 같이 보정한다.
 
 1. **현황 조사를 맨 앞에 추가** — 네임서버를 옮기면 그 도메인의 DNS 레코드 전체가 새 zone으로 넘어가므로 옮기기 전에 확인이 필요하다. 사용자 확인 결과 Render용 외 레코드가 없고 DNSSEC도 0건이므로, 조사 단계는 확인·기록 위주의 짧은 단계가 된다.
-2. **Pages 커스텀 도메인 연결은 네임서버 변경 전에 zone 등록 상태에서 미리 추가** — apex 도메인은 Cloudflare DNS가 authoritative일 때만 Pages 커스텀 도메인으로 검증된다. 그래서 네임서버 변경 자체는 필수이며 생략할 수 없다.
+2. **Pages 커스텀 도메인은 네임서버 변경 전에 가능한 범위까지 사전 등록** — apex 도메인은 Cloudflare DNS가 authoritative가 된 뒤에야 활성화가 확정된다. Cloudflare의 Pending zone은 production 상태로 간주하지 않으며, NS 전환 직후 Phase O4에서 zone/custom domain/HTTPS를 즉시 검증하고 실패 시 Porkbun 기본 NS로 원복한다.
 3. Render는 **연동 확인 후 일정 기간 유지**(롤백 경로)하고 그 뒤 정리한다.
 
 ## 승인된 요구사항
@@ -54,7 +57,7 @@ Cloudflare Pages 프로젝트 `nrkim-home`(Direct Upload, `cf-redirect/` 정적 
 
 ## 검토 옵션/제안 (미승인)
 
-- Next 앱 잔여 경로(`/aif-c01`, `src/app/util/route.ts` puppeteer API) 이전 — Pages 정적 배포에서는 동작하지 않으므로 현재 범위에서 제외. 필요하면 별도 plan(Workers 등).
+- Next 앱 잔여 경로(`/aif-c01`, `fe/src/app/util/route.ts` puppeteer API) 이전 — Pages 정적 배포에서는 동작하지 않으므로 현재 범위에서 제외. 필요하면 별도 plan(Workers 등).
 - Git 연동 자동배포 — Direct Upload 프로젝트는 Git Integration으로 전환할 수 없어 새 Pages 프로젝트가 필요하다. 요청 전까지 수행하지 않는다.
 
 ## 수행하지 않을 작업
@@ -78,7 +81,7 @@ Cloudflare Pages 프로젝트 `nrkim-home`(Direct Upload, `cf-redirect/` 정적 
 
 - 네임서버 변경 후 전파는 수 분~48시간. Porkbun 기본 NS 4개가 원복 경로다.
 - DNSSEC: Porkbun Registry DNSSEC 0 records로 확인되어 NS 변경 전 DS 해제는 필요 없다. (Cloudflare 쪽 DNSSEC는 기본 꺼져 있으며 이번 범위에서 켜지 않는다.)
-- Cloudflare zone 등록 시 자동 스캔으로 들어오는 레코드 중 Render용(apex A `216.24.57.1`, `www` CNAME)은 남기지 않는다. 그 외 레코드는 없어야 한다(있으면 사용자에게 확인). apex/`www`는 Pages 커스텀 도메인 연결이 CNAME을 자동 생성한다.
+- Cloudflare zone 등록 시 자동 스캔으로 들어오는 레코드 중 Render용(apex A `216.24.57.1`, `www` CNAME)은 남기지 않는다. 그 외 레코드는 없어야 한다(있으면 사용자에게 확인). apex/`www`는 Pages 커스텀 도메인 연결이 관리한다. Pending zone은 production으로 간주하지 않으며, NS 전환 후 zone/custom domain/HTTPS 활성화가 확인되지 않으면 Porkbun 기본 NS로 즉시 원복한다.
 - `www.narang.kim`도 함께 연결한다(현재 CNAME이 Render를 가리킴).
 - 인증서는 Cloudflare가 자동 발급한다(Pages 커스텀 도메인 Active 이후).
 
@@ -128,7 +131,7 @@ M. [ ] **머지 핸드오프** — `/merge` owner
 O1. [ ] **네임서버 변경 전 DNS 현황 확인** — [Claude 자동 + 사용자 확인 완료분 반영]
    - [x] 사용자 확인: Render용 외 사용 중인 DNS 레코드 없음, MX/TXT 없음(공용 리졸버 실측과 일치)
    - [x] 사용자 확인: Porkbun Registry DNSSEC 0 records — NS 변경 전 DS 해제 불요
-   - [ ] Porkbun 도메인 lock/transfer lock이 NS 변경을 막지 않는지 확인 — [사용자, 또는 Chrome 자동]
+   - [x] Porkbun transfer lock은 registrar transfer용이며 NS 변경 절차와 별개임을 공식 도움말 기준으로 확인 — 네임서버 변경에는 unlock 단계가 없음
    - [ ] 사용 가능한 자동화 경로를 확정한다: Cloudflare API 토큰 제공 여부, Porkbun API 키 제공 여부, 브라우저 로그인 상태 — [사용자 결정]
 
 ### Phase O2: Cloudflare 사전 구성 (owner, 새 배포 준비)
@@ -142,14 +145,14 @@ O2. [ ] **zone 등록 및 Pages 커스텀 도메인 사전 연결**
 ### Phase O3: 네임서버 전환 (owner)
 
 O3. [ ] **Porkbun 네임서버를 Cloudflare로 변경** — 실행 직전 사용자 확인 필수
-   - [ ] (권장) 전환 24시간 전 Porkbun DNS TTL을 최소값으로 낮춘다 — [Claude 자동(조건부) 또는 사용자]. 레코드가 Render용뿐이라 생략 가능하면 근거를 기록한다
+   - [x] Porkbun DNS 레코드 TTL 사전 하향은 생략 — 이번 전환은 parent NS delegation 변경이며 기존 zone은 Render A/CNAME뿐이므로, 레코드 TTL보다 Phase O4 검증 + NS 원복 경로를 cutover 안전장치로 사용한다
    - [ ] Porkbun: `narang.kim` 네임서버를 Phase O2에서 기록한 Cloudflare NS 2개로 교체한다 — [Claude 자동(조건부: Porkbun API 또는 Chrome) / 사용자]
    - [ ] 원복 경로 기록: Porkbun 기본 NS 4개(salvador/fortaleza/maceio/curitiba `.ns.porkbun.com`)
 
 ### Phase O4: 연동 확인 (owner) — 전부 [Claude 자동]
 
 O4. [ ] **Cloudflare 연동 확인**
-   - [ ] Cloudflare zone 상태가 Active인지 확인한다(대시보드 또는 `nslookup -type=NS` 전파로 간접 확인)
+   - [ ] Cloudflare zone 상태가 Active인지 확인한다(대시보드 + `nslookup -type=NS` 전파). Cloudflare NS 위임이 확인됐는데 zone/custom domain/HTTPS가 활성화되지 않으면 Porkbun 기본 NS 4개로 원복한다
    - [ ] Pages 커스텀 도메인 `narang.kim`, `www.narang.kim`이 Active이고 인증서가 발급되었는지 확인한다
    - [ ] `curl -sI https://narang.kim/`: `302`(또는 `301`) + `location: https://claude.ai/artifact/4Hhdi2DzQBaDLnsGzQ7aqe`, 응답이 즉시(콜드스타트 없이) 오는지 확인한다
    - [ ] `curl -sI https://www.narang.kim/`: 동일 결과 확인

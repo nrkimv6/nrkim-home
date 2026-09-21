@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repo": "nrkimv6/nrkim-home",
+  "canonical_ref": "main",
+  "canonical_path": "docs/plan/2026-09-21_narang-kim-cloudflare-migration.md",
+  "original_input_ref": "main",
+  "original_input_path": "docs/plan/2026-09-21_narang-kim-cloudflare-migration.md",
+  "requested_filename": "2026-09-21_nrkim-domain-migration.md",
+  "resolved_filename": "2026-09-21_narang-kim-cloudflare-migration.md",
+  "review": {
+    "disposition": "keep",
+    "apply_commit_sha": null,
+    "apply_blob_sha": "ff948b1fa5422c5a222c4397cbf82ace399a9d91",
+    "publish_ledger_paths": [],
+    "publish_ledger_blob_shas": [],
+    "review_state": "apply_complete",
+    "lifecycle_closeout_ready": true,
+    "reviewed_at": "2026-09-21"
+  },
+  "expansion": {},
+  "verification": {},
+  "contract_sources": {
+    "web_review_plan_blob": "620be4817db4a6ac9310a9260afe5b9b4d271896",
+    "web_expand_todo_blob": "b0248bacb35731c594a3d72f1f9f134e485c743f",
+    "web_chain_contract_blob": "a50cffb72fd9ba0cedbe0a1bbfea0a187c3c09f3"
+  }
+}
