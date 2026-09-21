@@ -17,7 +17,16 @@
     "lifecycle_closeout_ready": true,
     "reviewed_at": "2026-09-21"
   },
-  "expansion": {},
+  "expansion": {
+    "expand_commit_sha": null,
+    "expand_parent_sha": "7865c36cd36c182169f48b116d87802c6944e008",
+    "plan_blob_sha_after": "8bbc210e991c6c1cbd529380b96c75a3943feea0",
+    "expanded_at_main": "7865c36cd36c182169f48b116d87802c6944e008",
+    "baseline_main_sha": "5d752297feaef7f49a2dc698841fc00c491f35af",
+    "drift_mode": "baseline_compare",
+    "concurrent_adoption": false,
+    "adopted_commit_sha": null
+  },
   "verification": {},
   "contract_sources": {
     "web_review_plan_blob": "620be4817db4a6ac9310a9260afe5b9b4d271896",
