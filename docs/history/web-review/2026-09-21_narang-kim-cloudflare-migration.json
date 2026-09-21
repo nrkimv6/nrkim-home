@@ -18,16 +18,42 @@
     "reviewed_at": "2026-09-21"
   },
   "expansion": {
-    "expand_commit_sha": null,
+    "expand_commit_sha": "b985e72d02e3b9446421236481dc30913e0d6449",
     "expand_parent_sha": "0a65b2a6a005ac633b4c1248beed27a379a05c2d",
     "plan_blob_sha_after": "df96a57242915bd6b9d96e0895ca0b5d88e7fc8b",
     "expanded_at_main": "7865c36cd36c182169f48b116d87802c6944e008",
     "baseline_main_sha": "5d752297feaef7f49a2dc698841fc00c491f35af",
     "drift_mode": "baseline_compare",
     "concurrent_adoption": false,
-    "adopted_commit_sha": null
+    "adopted_commit_sha": null,
+    "plan_blob_sha": "df96a57242915bd6b9d96e0895ca0b5d88e7fc8b",
+    "expand_state": "apply_complete",
+    "next_owner": "web-implement",
+    "local_helper_executed": false
   },
-  "verification": {},
+  "verification": {
+    "plan_blob_sha_after": "df96a57242915bd6b9d96e0895ca0b5d88e7fc8b",
+    "v1_path_existence": "GREEN",
+    "v2_reference_coverage": "GREEN",
+    "v3_signature_consistency": "N/A",
+    "v4_design_risk": "GREEN",
+    "v5_test_patch_pattern": "N/A",
+    "v6_doc_meta_consistency": "GREEN",
+    "evidence_summaries": {
+      "v1": "V1(path_existing=6,new_parent_ok=1,external_registry_checked=1,missing=0)",
+      "v2": "V2(redirect_target_refs=3,covered=3,code_symbol_mutation=0)",
+      "v3": "V3(signature_mutation=0)",
+      "v4": "V4(pending_zone_guard=1,ns_rollback=1,render_fallback_sync=1)",
+      "v5": "V5(test_patch_surface=0)",
+      "v6": "V6(total=75,done=4,open=71,progress=4/75,t4t5_partition=4/4,bad_marker=0)"
+    },
+    "remaining_leaf_count": 0,
+    "task_marker_total": 75,
+    "task_marker_done": 4,
+    "task_marker_open": 71,
+    "verified_at_main": "b985e72d02e3b9446421236481dc30913e0d6449",
+    "contract_source_fingerprint": "verify:805b78e9a2168d59ca562280782f5bc4bb1be917;drift:a2177cf4306d7a8d5ccb7444ed0802132407eb9a;expand:b0248bacb35731c594a3d72f1f9f134e485c743f"
+  },
   "contract_sources": {
     "web_review_plan_blob": "620be4817db4a6ac9310a9260afe5b9b4d271896",
     "web_expand_todo_blob": "b0248bacb35731c594a3d72f1f9f134e485c743f",
